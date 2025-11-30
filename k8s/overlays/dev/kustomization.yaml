@@ -1,0 +1,24 @@
+# Development Overlay Kustomization
+# TODO: Add patches and customizations for dev environment
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reference base manifests
+bases:
+  - ../../base
+
+# TODO: Add strategic merge patches
+# patchesStrategicMerge:
+#   - resource-quotas-patch.yaml
+
+# Environment-specific labels
+commonLabels:
+  environment: dev
+
+# TODO: Add ConfigMap generators for environment config
+# configMapGenerator:
+#   - name: platform-config
+#     literals:
+#       - ENVIRONMENT=dev
+#       - LOG_LEVEL=debug

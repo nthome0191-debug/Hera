@@ -1,0 +1,99 @@
+# Hera Project .gitignore
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.tfstate.lock.info
+**/crash.log
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+**/terraform.tfvars
+!**/terraform.tfvars.example
+
+# Go
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Go build cache
+.cache/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Kubernetes
+**/kubeconfig
+**/kubeconfig.yaml
+*.kubeconfig
+
+# Secrets and sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+*.env
+.env.local
+.env.*.local
+secrets/
+credentials.json
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Build artifacts
+build/
+_output/
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation build artifacts
+site/
+docs/_build/
+
+# Operator SDK
+**/testbin/
+**/cover.out
+
+# Helm
+**/charts/*.tgz
+
+# Kustomize
+kustomization.yaml.bak

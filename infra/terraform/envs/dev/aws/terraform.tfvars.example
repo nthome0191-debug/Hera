@@ -1,0 +1,61 @@
+# Example terraform.tfvars for Dev Environment - AWS
+# Copy this file to terraform.tfvars and customize values
+
+environment = "dev"
+region      = "us-east-1"
+
+cluster_name       = "hera-dev-eks"
+kubernetes_version = "1.28"
+
+# Network Configuration
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+
+enable_nat_gateway = true  # Set to false for even more cost savings
+
+# Cluster Configuration
+enable_private_endpoint = true
+enable_public_endpoint  = true
+
+# Restrict to your IP - replace with your actual IP
+authorized_networks = ["0.0.0.0/0"]  # TODO: Replace with your IP/CIDR
+
+# Node Groups Configuration
+node_groups = {
+  system = {
+    min_size       = 2
+    max_size       = 3
+    desired_size   = 2
+    instance_types = ["t3.medium"]
+    disk_size      = 50
+    labels = {
+      role = "system"
+    }
+    taints = []
+  }
+
+  workload = {
+    min_size       = 1
+    max_size       = 5
+    desired_size   = 2
+    instance_types = ["t3.medium"]
+    disk_size      = 100
+    labels = {
+      role = "workload"
+    }
+    taints = []
+    # Enable Spot instances for cost savings
+    # capacity_type = "SPOT"
+  }
+}
+
+# Tags
+tags = {
+  Environment = "dev"
+  Project     = "hera"
+  ManagedBy   = "terraform"
+  CostCenter  = "engineering"
+}

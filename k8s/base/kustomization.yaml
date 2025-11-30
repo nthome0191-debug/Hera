@@ -1,0 +1,16 @@
+# Base Kustomization
+# TODO: Add resources as they are created
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# TODO: Uncomment and add resources
+# resources:
+#   - namespaces.yaml
+#   - rbac.yaml
+#   - network-policies.yaml
+#   - resource-quotas.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: hera-platform

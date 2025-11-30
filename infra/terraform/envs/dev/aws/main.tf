@@ -1,0 +1,46 @@
+# Development Environment - AWS
+# This file orchestrates network, cluster, and platform modules
+# Contains only composition logic, no business logic
+
+# TODO: Implement module composition
+#
+# module "network" {
+#   source = "../../../modules/network/aws"
+#
+#   environment           = var.environment
+#   region               = var.region
+#   vpc_cidr             = var.vpc_cidr
+#   availability_zones   = var.availability_zones
+#   private_subnet_cidrs = var.private_subnet_cidrs
+#   public_subnet_cidrs  = var.public_subnet_cidrs
+#   enable_nat_gateway   = var.enable_nat_gateway
+#   tags                 = var.tags
+# }
+#
+# module "eks_cluster" {
+#   source = "../../../modules/kubernetes-cluster/aws-eks"
+#
+#   cluster_name             = var.cluster_name
+#   environment              = var.environment
+#   region                   = var.region
+#   kubernetes_version       = var.kubernetes_version
+#   vpc_id                   = module.network.vpc_id
+#   private_subnet_ids       = module.network.private_subnet_ids
+#   public_subnet_ids        = module.network.public_subnet_ids
+#   node_groups              = var.node_groups
+#   enable_private_endpoint  = var.enable_private_endpoint
+#   enable_public_endpoint   = var.enable_public_endpoint
+#   authorized_networks      = var.authorized_networks
+#   tags                     = var.tags
+# }
+#
+# module "platform_base" {
+#   source = "../../../modules/platform/base"
+#
+#   cluster_name           = var.cluster_name
+#   cluster_endpoint       = module.eks_cluster.cluster_endpoint
+#   cluster_ca_certificate = module.eks_cluster.cluster_ca_certificate
+#   kubeconfig             = module.eks_cluster.kubeconfig
+#   cloud_provider         = "aws"
+#   environment            = var.environment
+# }
