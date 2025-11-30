@@ -28,3 +28,7 @@
 #     tags = var.tags
 #   }
 # }
+
+provider "aws" {
+  region = var.region
+}

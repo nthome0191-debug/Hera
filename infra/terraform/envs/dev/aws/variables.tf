@@ -77,3 +77,21 @@
 #   type        = map(string)
 #   default     = {}
 # }
+
+variable "region" {
+  type = string
+}
+
+variable "aws_account_id" {
+  type = string
+}
+
+variable "project" {
+  type    = string
+  default = "hera"
+}
+
+variable "environment" {
+  type    = string
+  default = "dev"
+}

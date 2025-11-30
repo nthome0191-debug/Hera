@@ -16,3 +16,13 @@
 # Note: Create the S3 bucket and DynamoDB table manually before using this backend
 # S3 bucket: Enable versioning and encryption
 # DynamoDB table: Create with LockID as partition key (String)
+
+terraform {
+  backend "s3" {
+    bucket         = "hera-dev-tf-state"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "hera-dev-tf-lock"
+    encrypt        = true
+  }
+}
