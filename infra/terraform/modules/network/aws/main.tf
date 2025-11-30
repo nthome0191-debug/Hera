@@ -1,4 +1,4 @@
-ccount# AWS VPC Network Module
+# AWS VPC Network Module
 # TODO: Implement VPC, subnets, NAT gateways, Internet gateway, route tables
 #
 # Resources to create:
