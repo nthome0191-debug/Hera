@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:TagResource",
+        "dynamodb:ListTagsOfResource",
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeContinuousBackups",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:DescribeContinuousBackups"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:628987527285:table/hera-*-tf-lock"
+      ]
+    }
+  ]
+}

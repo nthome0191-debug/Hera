@@ -1,7 +1,0 @@
-# Bootstrap Environment Configuration - AWS
-# Copy this file to terraform.tfvars and fill in your values
-
-region         = "us-east-1"
-aws_account_id = "YOUR_AWS_ACCOUNT_ID"
-project        = "hera"
-environment    = "dev"

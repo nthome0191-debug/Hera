@@ -26,9 +26,9 @@ locals {
   project     = var.project
   environment = var.environment
 
-  bucket_name     = "${local.project}-${local.environment}-tf-state"
-  lock_table_name = "${local.project}-${local.environment}-tf-lock"
-  admin_role_name = "${local.project}-${local.environment}-admin"
+  bucket_name     = "${local.project}-${local.environment}-tf-state-${var.aws_account_id}"
+  lock_table_name = "${local.project}-${local.environment}-tf-lock-${var.aws_account_id}"
+  admin_role_name = "${local.project}-${local.environment}-admin-${var.aws_account_id}"
 }
 
 module "bootstrap" {
