@@ -8,7 +8,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    # Uncomment when implementing EKS cluster
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    # Uncomment when implementing platform modules
     # kubernetes = {
     #   source  = "hashicorp/kubernetes"
     #   version = "~> 2.23"

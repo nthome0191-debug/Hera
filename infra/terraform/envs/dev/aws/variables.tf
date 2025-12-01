@@ -164,3 +164,59 @@ variable "flow_logs_traffic_type" {
   type        = string
   default     = "ALL"
 }
+
+# EKS Configuration
+variable "kubernetes_version" {
+  description = "Kubernetes version for the EKS cluster"
+  type        = string
+  default     = "1.31"
+}
+
+variable "enable_private_endpoint" {
+  description = "Enable private API server endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "enable_public_endpoint" {
+  description = "Enable public API server endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "authorized_networks" {
+  description = "CIDR blocks allowed to access public endpoint"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "node_groups" {
+  description = "EKS node group configurations"
+  type = map(object({
+    desired_size   = number
+    min_size       = number
+    max_size       = number
+    instance_types = list(string)
+    capacity_type  = string
+    disk_size      = number
+    labels         = map(string)
+    taints = list(object({
+      key    = string
+      value  = string
+      effect = string
+    }))
+  }))
+  default = {}
+}
+
+variable "enable_cluster_autoscaler" {
+  description = "Enable IAM policy for Cluster Autoscaler"
+  type        = bool
+  default     = false
+}
+
+variable "cluster_log_retention_days" {
+  description = "CloudWatch log retention in days for EKS control plane logs"
+  type        = number
+  default     = 7
+}
