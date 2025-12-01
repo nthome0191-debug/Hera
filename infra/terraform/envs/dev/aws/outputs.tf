@@ -1,11 +1,37 @@
 # Development Environment Outputs - AWS
 
-# TODO: Define outputs from the modules
-#
-# output "vpc_id" {
-#   description = "VPC ID"
-#   value       = module.network.vpc_id
-# }
+# Network Outputs
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.network.vpc_id
+}
+
+output "vpc_cidr" {
+  description = "VPC CIDR block"
+  value       = module.network.vpc_cidr
+}
+
+output "private_subnet_ids" {
+  description = "Private subnet IDs"
+  value       = module.network.private_subnet_ids
+}
+
+output "public_subnet_ids" {
+  description = "Public subnet IDs"
+  value       = module.network.public_subnet_ids
+}
+
+output "nat_gateway_ips" {
+  description = "NAT Gateway public IPs"
+  value       = module.network.nat_gateway_ips
+}
+
+output "availability_zones" {
+  description = "Availability zones in use"
+  value       = module.network.availability_zones
+}
+
+# EKS Cluster Outputs (to be uncommented when EKS module is implemented)
 #
 # output "cluster_id" {
 #   description = "EKS cluster ID"
@@ -27,15 +53,3 @@
 #   description = "OIDC provider ARN for IRSA"
 #   value       = module.eks_cluster.oidc_provider_arn
 # }
-
-output "state_bucket" {
-  value = module.bootstrap.bucket_name
-}
-
-output "state_lock_table" {
-  value = module.bootstrap.lock_table_name
-}
-
-output "admin_role_arn" {
-  value = module.bootstrap.admin_role_arn
-}

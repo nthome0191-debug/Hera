@@ -6,21 +6,28 @@
 # The S3 bucket and DynamoDB table must be created FIRST by applying
 # the bootstrap environment (envs/bootstrap/aws/)
 
-# TODO: Implement module composition
-# Once network and EKS modules are implemented, uncomment and configure:
-#
-# module "network" {
-#   source = "../../../modules/network/aws"
-#
-#   environment           = var.environment
-#   region               = var.region
-#   vpc_cidr             = var.vpc_cidr
-#   availability_zones   = var.availability_zones
-#   private_subnet_cidrs = var.private_subnet_cidrs
-#   public_subnet_cidrs  = var.public_subnet_cidrs
-#   enable_nat_gateway   = var.enable_nat_gateway
-#   tags                 = var.tags
-# }
+locals {
+  tags = {
+    Project     = var.project
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+module "network" {
+  source = "../../../modules/network/aws"
+
+  region                = var.region
+  vpc_cidr              = var.vpc_cidr
+  availability_zones    = var.availability_zones
+  private_subnet_cidrs  = var.private_subnet_cidrs
+  public_subnet_cidrs   = var.public_subnet_cidrs
+  enable_nat_gateway    = var.enable_nat_gateway
+  single_nat_gateway    = var.single_nat_gateway
+  enable_vpc_endpoints  = var.enable_vpc_endpoints
+  cluster_name          = var.cluster_name
+  tags                  = local.tags
+}
 #
 # module "eks_cluster" {
 #   source = "../../../modules/kubernetes-cluster/aws-eks"

@@ -95,3 +95,48 @@ variable "environment" {
   type    = string
   default = "dev"
 }
+
+# Network variables
+variable "vpc_cidr" {
+  description = "VPC CIDR block"
+  type        = string
+}
+
+variable "availability_zones" {
+  description = "List of availability zones"
+  type        = list(string)
+}
+
+variable "private_subnet_cidrs" {
+  description = "Private subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "public_subnet_cidrs" {
+  description = "Public subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "enable_nat_gateway" {
+  description = "Enable NAT gateway"
+  type        = bool
+  default     = true
+}
+
+variable "single_nat_gateway" {
+  description = "Use a single NAT Gateway for all private subnets (cost-effective for dev)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_vpc_endpoints" {
+  description = "Enable VPC endpoints for AWS services"
+  type        = bool
+  default     = false
+}
+
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+  default     = ""
+}
