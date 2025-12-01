@@ -135,8 +135,32 @@ variable "enable_vpc_endpoints" {
   default     = false
 }
 
+variable "vpc_endpoints" {
+  description = "List of VPC endpoints to create (s3, ecr_api, ecr_dkr, ec2, ec2messages, sts, logs)"
+  type        = list(string)
+  default     = []
+}
+
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
   default     = ""
+}
+
+variable "enable_flow_logs" {
+  description = "Enable VPC Flow Logs to CloudWatch"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_retention_days" {
+  description = "CloudWatch log retention in days for VPC Flow Logs. Dev: 1 day, Prod: 3 days recommended"
+  type        = number
+  default     = 1
+}
+
+variable "flow_logs_traffic_type" {
+  description = "Type of traffic to log: ACCEPT, REJECT, or ALL"
+  type        = string
+  default     = "ALL"
 }

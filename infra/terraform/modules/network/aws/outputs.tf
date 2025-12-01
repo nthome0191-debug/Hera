@@ -62,3 +62,18 @@ output "vpc_endpoint_ids" {
   description = "Map of VPC endpoint IDs"
   value       = { for k, v in aws_vpc_endpoint.this : k => v.id }
 }
+
+output "flow_logs_log_group_name" {
+  description = "CloudWatch Log Group name for VPC Flow Logs"
+  value       = var.enable_flow_logs ? aws_cloudwatch_log_group.flow_logs[0].name : null
+}
+
+output "flow_logs_log_group_arn" {
+  description = "CloudWatch Log Group ARN for VPC Flow Logs"
+  value       = var.enable_flow_logs ? aws_cloudwatch_log_group.flow_logs[0].arn : null
+}
+
+output "flow_logs_id" {
+  description = "VPC Flow Logs ID"
+  value       = var.enable_flow_logs ? aws_flow_log.main[0].id : null
+}

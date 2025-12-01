@@ -71,6 +71,24 @@ variable "cluster_name" {
   default     = ""
 }
 
+variable "enable_flow_logs" {
+  description = "Enable VPC Flow Logs to CloudWatch"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_retention_days" {
+  description = "CloudWatch log retention in days for VPC Flow Logs (1, 3, 5, 7, 14, 30, 60, 90, etc.)"
+  type        = number
+  default     = 1
+}
+
+variable "flow_logs_traffic_type" {
+  description = "Type of traffic to log: ACCEPT, REJECT, or ALL"
+  type        = string
+  default     = "ALL"
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

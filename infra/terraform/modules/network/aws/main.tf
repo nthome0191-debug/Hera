@@ -9,7 +9,6 @@ terraform {
   }
 }
 
-# VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = var.enable_dns_hostnames
@@ -26,7 +25,6 @@ resource "aws_vpc" "main" {
   )
 }
 
-# Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -38,7 +36,6 @@ resource "aws_internet_gateway" "main" {
   )
 }
 
-# Public Subnets
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
 
@@ -60,7 +57,6 @@ resource "aws_subnet" "public" {
   )
 }
 
-# Private Subnets
 resource "aws_subnet" "private" {
   count = length(var.private_subnet_cidrs)
 
@@ -81,7 +77,6 @@ resource "aws_subnet" "private" {
   )
 }
 
-# Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
   count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
 
@@ -97,7 +92,6 @@ resource "aws_eip" "nat" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# NAT Gateways
 resource "aws_nat_gateway" "main" {
   count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
 
@@ -114,7 +108,6 @@ resource "aws_nat_gateway" "main" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# Public Route Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -127,14 +120,12 @@ resource "aws_route_table" "public" {
   )
 }
 
-# Public Route to Internet Gateway
 resource "aws_route" "public_internet_gateway" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.main.id
 }
 
-# Public Route Table Associations
 resource "aws_route_table_association" "public" {
   count = length(var.public_subnet_cidrs)
 
@@ -142,7 +133,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Private Route Tables
 resource "aws_route_table" "private" {
   count = var.single_nat_gateway ? 1 : length(var.availability_zones)
 
@@ -157,7 +147,6 @@ resource "aws_route_table" "private" {
   )
 }
 
-# Private Routes to NAT Gateway
 resource "aws_route" "private_nat_gateway" {
   count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.availability_zones)) : 0
 
@@ -166,7 +155,6 @@ resource "aws_route" "private_nat_gateway" {
   nat_gateway_id         = aws_nat_gateway.main[count.index].id
 }
 
-# Private Route Table Associations
 resource "aws_route_table_association" "private" {
   count = length(var.private_subnet_cidrs)
 
@@ -174,7 +162,6 @@ resource "aws_route_table_association" "private" {
   route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index].id
 }
 
-# VPN Gateway (optional)
 resource "aws_vpn_gateway" "main" {
   count = var.enable_vpn_gateway ? 1 : 0
 
@@ -188,9 +175,8 @@ resource "aws_vpn_gateway" "main" {
   )
 }
 
-# VPC Endpoints for AWS Services (optional for cost optimization)
 locals {
-  vpc_endpoint_services = {
+  all_vpc_endpoint_services = {
     s3 = {
       service_name = "com.amazonaws.${var.region}.s3"
       service_type = "Gateway"
@@ -234,15 +220,15 @@ locals {
     }
   }
 
-  enabled_vpc_endpoints = !var.enable_vpc_endpoints ? {} : (
-    length(var.vpc_endpoints) == 0 ? local.vpc_endpoint_services : {
-      for k, v in local.vpc_endpoint_services : k => v
-      if contains(var.vpc_endpoints, k)
-    }
+  selected_vpc_endpoints = !var.enable_vpc_endpoints ? [] : (
+    length(var.vpc_endpoints) == 0 ? keys(local.all_vpc_endpoint_services) : var.vpc_endpoints
   )
+
+  vpc_endpoints_to_create = {
+    for k in local.selected_vpc_endpoints : k => local.all_vpc_endpoint_services[k]
+  }
 }
 
-# Security Group for VPC Endpoints
 resource "aws_security_group" "vpc_endpoints" {
   count = var.enable_vpc_endpoints ? 1 : 0
 
@@ -278,9 +264,8 @@ resource "aws_security_group" "vpc_endpoints" {
   }
 }
 
-# VPC Endpoints
 resource "aws_vpc_endpoint" "this" {
-  for_each = local.enabled_vpc_endpoints
+  for_each = local.vpc_endpoints_to_create
 
   vpc_id             = aws_vpc.main.id
   service_name       = each.value.service_name
@@ -296,6 +281,86 @@ resource "aws_vpc_endpoint" "this" {
     var.tags,
     {
       Name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpce-${each.key}"
+    }
+  )
+}
+
+resource "aws_cloudwatch_log_group" "flow_logs" {
+  count = var.enable_flow_logs ? 1 : 0
+
+  name              = "/aws/vpc/flow-logs/${var.tags["Project"]}-${var.tags["Environment"]}"
+  retention_in_days = var.flow_logs_retention_days
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpc-flow-logs"
+    }
+  )
+}
+
+resource "aws_iam_role" "flow_logs" {
+  count = var.enable_flow_logs ? 1 : 0
+
+  name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpc-flow-logs"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpc-flow-logs-role"
+    }
+  )
+}
+
+resource "aws_iam_role_policy" "flow_logs" {
+  count = var.enable_flow_logs ? 1 : 0
+
+  name = "vpc-flow-logs-policy"
+  role = aws_iam_role.flow_logs[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_flow_log" "main" {
+  count = var.enable_flow_logs ? 1 : 0
+
+  vpc_id          = aws_vpc.main.id
+  traffic_type    = var.flow_logs_traffic_type
+  iam_role_arn    = aws_iam_role.flow_logs[0].arn
+  log_destination = aws_cloudwatch_log_group.flow_logs[0].arn
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpc-flow-logs"
     }
   )
 }
