@@ -27,3 +27,15 @@
 #   description = "OIDC provider ARN for IRSA"
 #   value       = module.eks_cluster.oidc_provider_arn
 # }
+
+output "state_bucket" {
+  value = module.bootstrap.bucket_name
+}
+
+output "state_lock_table" {
+  value = module.bootstrap.lock_table_name
+}
+
+output "admin_role_arn" {
+  value = module.bootstrap.admin_role_arn
+}
