@@ -128,7 +128,7 @@ hera/
 │
 └── cmd/                              # Command-line tools
     ├── README.md
-    └── clusterctl/                   # Cluster management CLI
+    └── infractl/                   # Cluster management CLI
         ├── README.md
         ├── main.go
         └── cmd/
@@ -174,7 +174,7 @@ Custom Kubernetes operators for managing:
 - **pkg/**: Shared libraries and platform abstractions
   - Cloud-agnostic interfaces
   - Reusable utilities
-- **cmd/clusterctl/**: CLI for cluster management
+- **cmd/infractl/**: CLI for cluster management
   - Multi-cloud cluster operations
   - Unified command interface
 
@@ -195,7 +195,7 @@ kubectl apply -k k8s/overlays/dev
 
 ### To build the CLI:
 ```bash
-make build-clusterctl
+make build-infractl
 ```
 
 ### To work on operators:
@@ -216,7 +216,7 @@ cd operators/redis-operator
 
 1. **Implement Terraform Modules**: Start with AWS network and EKS modules
 2. **Implement Operators**: Begin with redis-operator
-3. **Build CLI Tools**: Develop clusterctl commands
+3. **Build CLI Tools**: Develop infractl commands
 4. **Create Example Configurations**: Add working examples
 5. **Set Up CI/CD**: GitHub Actions for testing and validation
 

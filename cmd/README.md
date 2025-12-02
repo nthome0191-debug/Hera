@@ -4,7 +4,7 @@ This directory contains CLI tools for the Hera platform.
 
 ## Tools
 
-### clusterctl
+### infractl
 
 A unified CLI for managing Hera Kubernetes clusters across cloud providers.
 
@@ -12,7 +12,7 @@ A unified CLI for managing Hera Kubernetes clusters across cloud providers.
 
 ```
 cmd/
-  clusterctl/
+  infractl/
     main.go           # Entry point
     cmd/              # Cobra commands
       root.go
@@ -30,8 +30,8 @@ cmd/
 make build
 
 # Build specific tool
-cd cmd/clusterctl
-go build -o clusterctl
+cd cmd/infractl
+go build -o infractl
 
 # Install to $GOPATH/bin
 go install
@@ -53,4 +53,4 @@ Tools can be distributed via:
 1. **GitHub Releases**: Binary artifacts
 2. **Homebrew**: Package for macOS/Linux
 3. **Container Images**: Dockerized tools
-4. **Go Install**: `go install github.com/yourorg/hera/cmd/clusterctl@latest`
+4. **Go Install**: `go install github.com/yourorg/hera/cmd/infractl@latest`

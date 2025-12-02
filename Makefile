@@ -90,15 +90,15 @@ operator-secrets-build: ## Build Secrets operator
 
 ##@ CLI Tools
 
-.PHONY: build-clusterctl
-build-clusterctl: ## Build clusterctl CLI
-	@echo "TODO: Build clusterctl"
-	# @cd cmd/clusterctl && go build -o ../../bin/clusterctl
+.PHONY: build-infractl
+build-infractl: ## Build infractl CLI
+	@echo "TODO: Build infractl"
+	# @cd cmd/infractl && go build -o ../../bin/infractl
 
-.PHONY: install-clusterctl
-install-clusterctl: ## Install clusterctl to $GOPATH/bin
-	@echo "TODO: Install clusterctl"
-	# @cd cmd/clusterctl && go install
+.PHONY: install-infractl
+install-infractl: ## Install infractl to $GOPATH/bin
+	@echo "TODO: Install infractl"
+	# @cd cmd/infractl && go install
 
 ##@ Testing
 

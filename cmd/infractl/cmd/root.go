@@ -36,8 +36,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&globalConfig.VarFile, "var-file", "", "Path to a terraform .tfvars file")
 	rootCmd.PersistentFlags().StringArrayVar(&globalConfig.BackendConfig, "backend-config", nil, "backend config arguments for terraform init")
 
-	// rootCmd.AddCommand(planCmd)
-	// rootCmd.AddCommand(applyCmd)
-	// rootCmd.AddCommand(destroyCmd)
-	// rootCmd.AddCommand(outputCmd)
+	rootCmd.AddCommand(planCmd)
+	rootCmd.AddCommand(applyCmd)
+	rootCmd.AddCommand(destroyCmd)
+	rootCmd.AddCommand(outputCmd)
 }

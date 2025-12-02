@@ -1,7 +1,7 @@
 // Package platform interfaces
 // TODO: Implement core platform interfaces
-//
-// package platform
+package platform
+
 //
 // import "context"
 //

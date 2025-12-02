@@ -2,18 +2,8 @@ module hera
 
 go 1.21
 
-// TODO: Add dependencies as they are needed
-// Example dependencies:
-// require (
-//     github.com/spf13/cobra v1.8.0
-//     k8s.io/api v0.28.0
-//     k8s.io/apimachinery v0.28.0
-//     k8s.io/client-go v0.28.0
-//     sigs.k8s.io/controller-runtime v0.16.0
-// )
-
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/spf13/cobra v1.10.1 // indirect
+	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.9 // indirect
 )

@@ -1,7 +1,7 @@
 // Redis Operator Entry Point
 // TODO: Implement operator main function using Operator SDK/Kubebuilder
-//
-// package main
+package main
+
 //
 // import (
 //     "flag"

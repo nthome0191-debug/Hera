@@ -1,10 +1,10 @@
-# clusterctl
+# infractl
 
 A unified CLI for managing Hera Kubernetes clusters across AWS, Azure, and GCP.
 
 ## Overview
 
-`clusterctl` is a command-line tool that provides a consistent interface for:
+`infractl` is a command-line tool that provides a consistent interface for:
 - Creating Kubernetes clusters
 - Managing cluster lifecycle
 - Querying cluster information
@@ -24,12 +24,12 @@ A unified CLI for managing Hera Kubernetes clusters across AWS, Azure, and GCP.
 
 ```bash
 # From source
-go install github.com/yourorg/hera/cmd/clusterctl@latest
+go install github.com/yourorg/hera/cmd/infractl@latest
 
 # Or build locally
-cd cmd/clusterctl
-go build -o clusterctl
-sudo mv clusterctl /usr/local/bin/
+cd cmd/infractl
+go build -o infractl
+sudo mv infractl /usr/local/bin/
 ```
 
 ## Usage
@@ -38,49 +38,49 @@ sudo mv clusterctl /usr/local/bin/
 
 ```bash
 # Interactive mode
-clusterctl create cluster
+infractl create cluster
 
 # From config file
-clusterctl create cluster --config cluster.yaml
+infractl create cluster --config cluster.yaml
 
 # Quick create with defaults
-clusterctl create cluster my-cluster --provider aws --region us-east-1
+infractl create cluster my-cluster --provider aws --region us-east-1
 ```
 
 ### Get Cluster Info
 
 ```bash
 # List all clusters
-clusterctl get clusters
+infractl get clusters
 
 # Get specific cluster
-clusterctl get cluster my-cluster
+infractl get cluster my-cluster
 
 # Get kubeconfig
-clusterctl get kubeconfig my-cluster
+infractl get kubeconfig my-cluster
 ```
 
 ### Update Cluster
 
 ```bash
 # Update from config
-clusterctl update cluster --config cluster.yaml
+infractl update cluster --config cluster.yaml
 
 # Scale node group
-clusterctl scale nodegroup my-cluster/workers --min 3 --max 10
+infractl scale nodegroup my-cluster/workers --min 3 --max 10
 
 # Upgrade version
-clusterctl upgrade cluster my-cluster --version 1.29
+infractl upgrade cluster my-cluster --version 1.29
 ```
 
 ### Delete Cluster
 
 ```bash
 # Delete cluster
-clusterctl delete cluster my-cluster
+infractl delete cluster my-cluster
 
 # Delete with confirmation skip
-clusterctl delete cluster my-cluster --yes
+infractl delete cluster my-cluster --yes
 ```
 
 ## Configuration
@@ -209,7 +209,7 @@ Validate configurations:
 go run main.go create cluster --help
 
 # Build
-go build -o clusterctl
+go build -o infractl
 
 # Run tests
 go test ./...

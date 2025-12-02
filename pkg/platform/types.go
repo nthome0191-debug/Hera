@@ -1,7 +1,7 @@
 // Package platform provides core platform abstractions
 // TODO: Implement core platform types and interfaces
-//
-// package platform
+package platform
+
 //
 // import (
 //     "context"

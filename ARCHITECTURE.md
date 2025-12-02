@@ -115,7 +115,7 @@ pkg/                     # Shared libraries
 └── platform/           # Core abstractions
 
 cmd/                     # CLI tools
-└── clusterctl/         # Cluster management CLI
+└── infractl/         # Cluster management CLI
 ```
 
 **Design Principles:**
@@ -127,7 +127,7 @@ cmd/                     # CLI tools
 
 ### Cluster Creation Flow
 
-1. **User Initiates**: Via `clusterctl` or Terraform directly
+1. **User Initiates**: Via `infractl` or Terraform directly
 2. **Network Module**: Creates VPC, subnets, NAT gateways
 3. **Cluster Module**: Creates Kubernetes cluster using outputs from network module
 4. **Platform Module**: Installs base platform components (metrics-server, autoscaler)

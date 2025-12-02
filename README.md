@@ -70,7 +70,7 @@ environments without coupling to any application.
         platform/
 
       cmd/
-        clusterctl/
+        infractl/
 
       Makefile
 
@@ -109,7 +109,7 @@ environments without coupling to any application.
 -   Introduce Argo Workflows and BuildKit for Kubernetes-native CI.
 -   Introduce ArgoCD for GitOps-managed platform components.
 -   Add custom operators under `operators/`.
--   Provide CLI tooling under `cmd/clusterctl`.
+-   Provide CLI tooling under `cmd/infractl`.
 
 ------------------------------------------------------------------------
 
