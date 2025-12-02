@@ -1,0 +1,105 @@
+# Hera - AWS Bootstrap Module
+
+This module provisions the **minimal required AWS infrastructure** needed before deploying any other Terraform stacks in Hera.
+It creates the persistent Terraform backend components:
+
+- **S3 Bucket** - stores Terraform state  
+- **DynamoDB Table** - provides Terraform state locking  
+- **IAM Admin Role (optional)** - for delegated or cross-account management  
+
+These resources form the **Terraform backend foundation** for all AWS environments (dev, staging, prod).  
+No other stack can be safely applied without this backend existing.
+
+---
+
+## What This Module Creates
+
+### 1. S3 Bucket (Terraform State)
+- Versioning: enabled  
+- Server-side encryption: AES256  
+- Public access: fully blocked  
+- Optional force-destroy  
+
+### 2. DynamoDB Lock Table
+- Prevents state corruption  
+- PAY_PER_REQUEST billing (no capacity planning required)  
+
+### 3. Optional IAM Admin Role
+- Managed by STS assume-role  
+- AdministratorAccess by default  
+
+---
+
+## Why This Module Must Be Applied First
+
+Terraform requires a **backend** to store remote state.  
+Without it:
+
+- No state locking  
+- No safe collaboration  
+- No drift detection  
+- No multi-environment workflows  
+
+Once created, this module normally **remains persistent**, even when other stacks are created/destroyed frequently.
+
+---
+
+## Usage (Root Module)
+
+```hcl
+module "bootstrap" {
+  source = "./modules/bootstrap/aws"
+
+  region              = "us-east-1"
+  bucket_name         = "hera-tfstate-dev"
+  lock_table_name     = "hera-tf-locks-dev"
+  admin_role_name     = "hera-admin"
+  admin_principal_arn = "arn:aws:iam::<ACCOUNT>:root"
+
+  tags = {
+    project     = "hera"
+    environment = "dev"
+  }
+}
+```
+
+---
+
+## Typical Monthly Cost (AWS)
+
+Approximate cost for a single minimal environment.
+
+| Component | Approximate Cost / Month | Notes |
+|----------|---------------------------|-------|
+| S3 Bucket | **$0.50 - $1.50** | Terraform state files are tiny. Most cost comes from versioning + PUT requests. |
+| DynamoDB Table | **$0.00 - $0.30** | PAY_PER_REQUEST is extremely cheap for light Terraform usage. |
+| IAM Role | **$0.00** | IAM resources have no recurring cost. |
+
+### 🔹 Total Estimated Monthly Cost  
+**$0.50 - $1.80 / month**
+
+---
+
+## How to Apply
+
+### 1. Export credentials
+```sh
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_DEFAULT_REGION="us-east-1"
+```
+
+### 2. Apply the bootstrap
+```sh
+cd Hera/infra/terraform/modules/bootstrap/aws
+terraform init
+terraform apply -auto-approve
+```
+
+---
+
+## Important Notes
+
+- Bootstrap resources should **not be destroyed**, unless you want to delete *all* infrastructure.  
+- The S3 bucket name must be **globally unique**.  
+- This module is designed to stay stable forever, while network/Kubernetes stacks evolve or get re-created.
