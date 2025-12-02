@@ -1,223 +1,233 @@
-# infractl
+# infractl — Hera Infrastructure Orchestration CLI
 
-A unified CLI for managing Hera Kubernetes clusters across AWS, Azure, and GCP.
+`infractl` is the command-line tool that manages all Terraform-based infrastructure environments in the Hera mono-repo. It provides safe, dependency-aware operations, module targeting, and consistent workflows across all cloud providers and environments.
 
-## Overview
+## 1. Building the CLI
 
-`infractl` is a command-line tool that provides a consistent interface for:
-- Creating Kubernetes clusters
-- Managing cluster lifecycle
-- Querying cluster information
-- Updating cluster configurations
-- Managing platform components
+From the project root:
 
-## Features
-
-- **Multi-Cloud Support**: Manage clusters across AWS EKS, Azure AKS, and GCP GKE
-- **Unified Interface**: Same commands work across all cloud providers
-- **Configuration Management**: Support for config files and environment variables
-- **GitOps Ready**: Generate manifests for GitOps workflows
-- **Interactive Mode**: Guided cluster creation
-- **Template Support**: Reusable cluster templates
-
-## Installation
-
-```bash
-# From source
-go install github.com/yourorg/hera/cmd/infractl@latest
-
-# Or build locally
-cd cmd/infractl
-go build -o infractl
-sudo mv infractl /usr/local/bin/
+```
+make build-infractl
 ```
 
-## Usage
+This produces:
 
-### Create a Cluster
-
-```bash
-# Interactive mode
-infractl create cluster
-
-# From config file
-infractl create cluster --config cluster.yaml
-
-# Quick create with defaults
-infractl create cluster my-cluster --provider aws --region us-east-1
+```
+./bin/infractl
 ```
 
-### Get Cluster Info
+To install globally:
 
-```bash
-# List all clusters
-infractl get clusters
-
-# Get specific cluster
-infractl get cluster my-cluster
-
-# Get kubeconfig
-infractl get kubeconfig my-cluster
+```
+make install-infractl
 ```
 
-### Update Cluster
+This installs the binary into:
 
-```bash
-# Update from config
-infractl update cluster --config cluster.yaml
-
-# Scale node group
-infractl scale nodegroup my-cluster/workers --min 3 --max 10
-
-# Upgrade version
-infractl upgrade cluster my-cluster --version 1.29
+```
+$GOPATH/bin/infractl
 ```
 
-### Delete Cluster
+## 2. Shell Setup (zsh)
 
-```bash
-# Delete cluster
-infractl delete cluster my-cluster
+Edit:
 
-# Delete with confirmation skip
-infractl delete cluster my-cluster --yes
+```
+~/.zshrc
 ```
 
-## Configuration
+Add:
 
-### Config File Example
-
-```yaml
-apiVersion: hera.io/v1alpha1
-kind: ClusterConfig
-metadata:
-  name: my-cluster
-spec:
-  provider: aws
-  region: us-east-1
-  version: "1.28"
-  network:
-    vpcCIDR: 10.0.0.0/16
-    subnets:
-      private:
-        - 10.0.10.0/24
-        - 10.0.11.0/24
-      public:
-        - 10.0.1.0/24
-        - 10.0.2.0/24
-  nodeGroups:
-    - name: system
-      instanceType: t3.medium
-      minSize: 2
-      maxSize: 3
-    - name: workload
-      instanceType: t3.large
-      minSize: 1
-      maxSize: 10
+```
+export HERA_ROOT="$HOME/Projects/Hera"
+export PATH="$HERA_ROOT/bin:$PATH"
 ```
 
-### Environment Variables
+Reload:
 
-```bash
-export HERA_PROVIDER=aws
-export HERA_REGION=us-east-1
-export AWS_PROFILE=my-profile
+```
+source ~/.zshrc
 ```
 
-## Commands
+Now you can run:
 
-### Global Flags
-
-- `--config`: Path to config file
-- `--provider`: Cloud provider (aws, azure, gcp)
-- `--region`: Cloud region
-- `--output`: Output format (json, yaml, table)
-- `--verbose`: Enable verbose logging
-
-### create
-
-Create resources:
-- `create cluster`: Create a new cluster
-- `create nodegroup`: Add a node group to existing cluster
-
-### get
-
-Retrieve information:
-- `get clusters`: List all clusters
-- `get cluster`: Get cluster details
-- `get kubeconfig`: Get kubeconfig for a cluster
-- `get nodegroups`: List node groups
-
-### update
-
-Update resources:
-- `update cluster`: Update cluster configuration
-- `update nodegroup`: Update node group configuration
-
-### delete
-
-Delete resources:
-- `delete cluster`: Delete a cluster
-- `delete nodegroup`: Delete a node group
-
-### scale
-
-Scale resources:
-- `scale nodegroup`: Scale a node group
-
-### upgrade
-
-Upgrade resources:
-- `upgrade cluster`: Upgrade cluster Kubernetes version
-
-### validate
-
-Validate configurations:
-- `validate config`: Validate a config file
-
-## Implementation Plan
-
-### Phase 1: Basic Commands
-- [ ] CLI framework setup (Cobra)
-- [ ] Config file parsing
-- [ ] Basic create cluster command
-- [ ] Basic get commands
-- [ ] Basic delete cluster command
-
-### Phase 2: Multi-Cloud Support
-- [ ] AWS provider implementation
-- [ ] Azure provider implementation
-- [ ] GCP provider implementation
-- [ ] Provider abstraction
-
-### Phase 3: Advanced Features
-- [ ] Update and scale commands
-- [ ] Upgrade commands
-- [ ] Template support
-- [ ] Interactive mode
-
-### Phase 4: GitOps & CI/CD
-- [ ] Generate Terraform configs
-- [ ] Generate Kubernetes manifests
-- [ ] CI/CD integration helpers
-- [ ] Drift detection
-
-## Development
-
-```bash
-# Run locally
-go run main.go create cluster --help
-
-# Build
-go build -o infractl
-
-# Run tests
-go test ./...
-
-# Build for all platforms
-make build-all
+```
+infractl
 ```
 
-## Examples
+from any terminal.
 
-See the `examples/` directory for example cluster configurations and use cases.
+## 3. Infrastructure Layout
+
+Expected structure:
+
+```
+infra/terraform/envs/<env>/<provider>
+infra/terraform/modules/<stack>/<provider>
+```
+
+Examples:
+
+```
+infra/terraform/envs/bootstrap/aws/
+infra/terraform/envs/dev/aws/
+infra/terraform/envs/prod/aws/
+```
+
+Each environment is a Terraform root module composing:
+
+- module.network
+- module.eks_cluster
+- module.platform_base (optional)
+
+## 4. Cloud Credentials
+
+Example AWS:
+
+```
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_DEFAULT_REGION="us-east-1"
+```
+
+Or use:
+
+```
+aws sso login
+```
+
+## 5. Bootstrap (Required First Step)
+
+Plan:
+
+```
+infractl plan aws bootstrap
+```
+
+Apply:
+
+```
+infractl apply aws bootstrap --auto-approve
+```
+
+No other environment works before bootstrap exists.
+
+## 6. Managing Environments (dev / prod / staging)
+
+```
+infractl plan aws dev
+infractl apply aws dev --auto-approve
+infractl destroy aws dev --auto-approve
+```
+
+## 7. Module Targeting
+
+```
+network   → module.network
+eks       → module.eks_cluster
+platform  → module.platform_base
+```
+
+Examples:
+
+```
+infractl plan aws dev network
+infractl plan aws dev network eks
+infractl apply aws dev eks --auto-approve
+infractl destroy aws dev eks --auto-approve
+```
+
+## 8. Automatic Dependency Enforcement
+
+Dependencies enforced through Terraform state inspection:
+
+1. Bootstrap → everything
+2. Network → EKS
+3. EKS → Platform
+4. Reverse-order destroy protection
+
+Examples:
+
+```
+infractl apply aws dev eks        → blocked
+infractl destroy aws dev network  → blocked
+```
+
+## 9. Terraform Variable Files
+
+```
+--var-file=<file.tfvars>
+```
+
+Example:
+
+```
+infractl apply aws dev --var-file=terraform.tfvars.local --auto-approve
+```
+
+## 10. How infractl Detects Module State
+
+State detection is derived from:
+
+```
+terraform state list
+```
+
+If results contain:
+
+```
+module.network.
+```
+
+then network is applied.
+
+## 11. Extending infractl with New Stacks
+
+```
+var stackToModule = map[string]string{
+    "network":  "module.network",
+    "eks":      "module.eks_cluster",
+    "platform": "module.platform_base",
+}
+```
+
+```
+var stackDeps = map[string][]string{
+    "eks":      {"network"},
+    "platform": {"eks"},
+}
+```
+
+To add a stack:
+
+```
+stackToModule["kafka"] = "module.kafka"
+stackDeps["kafka"] = []string{"network"}
+```
+
+## 12. Recommended Workflow
+
+1. Configure shell (`HERA_ROOT`)
+2. Build CLI
+3. Apply bootstrap
+4. Work on modules under `infra/terraform/modules`
+5. Compose them in env main.tf
+6. Test using:
+   - infractl plan aws dev <module>
+   - infractl apply aws dev <module>
+7. Apply full environment
+8. Extend maps for new stacks/modules
+
+## 13. Summary
+
+`infractl` provides:
+
+- Standardized infra operations
+- Safe execution order
+- Dependency validation
+- Module targeting
+- Multi-module orchestration
+- Terraform-state-driven correctness
+- Simple extensibility
+
+It is the primary tool for provisioning and managing Hera platform infrastructure.
