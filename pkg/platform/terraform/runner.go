@@ -21,10 +21,11 @@ type Options struct {
 	AutoApprove   bool
 	VarFile       string
 	BackendConfig []string
+	Targets       []string
 }
 
-func Run(op Operation, provider, env, stack string, opts Options) error {
-	dir, err := resolvePath(opts.RootDir, provider, env, stack)
+func Run(op Operation, provider, env string, opts Options) error {
+	dir, err := resolvePath(opts.RootDir, provider, env)
 	if err != nil {
 		return err
 	}
@@ -47,11 +48,8 @@ func Run(op Operation, provider, env, stack string, opts Options) error {
 	}
 }
 
-func resolvePath(rootDir, provider, env, stack string) (string, error) {
+func resolvePath(rootDir, provider, env string) (string, error) {
 	base := filepath.Join(rootDir, "infra", "terraform", "envs", env, provider)
-	if stack != "" && stack != "all" {
-		base = filepath.Join(base, stack)
-	}
 	info, err := os.Stat(base)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve path %s: %w", base, err)
@@ -75,6 +73,9 @@ func terraformPlan(dir string, opts Options) error {
 	if opts.VarFile != "" {
 		args = append(args, "-var-file", opts.VarFile)
 	}
+	for _, t := range opts.Targets {
+		args = append(args, "-target", t)
+	}
 	return runTerraform(dir, args...)
 }
 
@@ -86,6 +87,9 @@ func terraformApply(dir string, opts Options) error {
 	if opts.VarFile != "" {
 		args = append(args, "-var-file", opts.VarFile)
 	}
+	for _, t := range opts.Targets {
+		args = append(args, "-target", t)
+	}
 	return runTerraform(dir, args...)
 }
 
@@ -96,6 +100,9 @@ func terraformDestroy(dir string, opts Options) error {
 	}
 	if opts.VarFile != "" {
 		args = append(args, "-var-file", opts.VarFile)
+	}
+	for _, t := range opts.Targets {
+		args = append(args, "-target", t)
 	}
 	return runTerraform(dir, args...)
 }

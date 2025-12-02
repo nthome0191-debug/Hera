@@ -14,16 +14,10 @@ type GlobalConfig struct {
 var (
 	rootCmd = &cobra.Command{
 		Use:   "infractl",
-		Short: "Infra control CLI for Hera project",
+		Short: "Infrastructure orchestration CLI for Hera",
 	}
 
 	globalConfig GlobalConfig
-
-	defaultStacks = []string{
-		"network",
-		"eks",
-		"platform",
-	}
 )
 
 func Execute() error {
