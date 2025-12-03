@@ -1,6 +1,12 @@
 # Azure AKS Cluster Module
 
-Provisions Azure Kubernetes Service (AKS) cluster with node pools.
+🔄 **STATUS: PLANNED - NOT YET IMPLEMENTED**
+
+This module is a **stub/placeholder** for future Azure AKS implementation. The AWS EKS module (`../aws-eks/`) is production-ready and serves as the reference implementation.
+
+## Planned Features
+
+This module will provision Azure Kubernetes Service (AKS) infrastructure including:
 
 ## Resources Created
 

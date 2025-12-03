@@ -2,14 +2,18 @@
 
 The Hera network module defines the **networking foundation** for running application workloads on AWS, Azure, or GCP.
 
-It consists of provider-specific implementations:
+## Implementation Status
 
 ```
 modules/network/
-├── aws/
-├── azure/   (planned)
-└── gcp/     (planned)
+├── aws/      ✅ Production-ready (VPC, NAT, endpoints, flow logs)
+├── azure/    🔄 Planned (VNet, NAT Gateway, Private Endpoints)
+└── gcp/      🔄 Planned (VPC, Cloud NAT, Private Service Connect)
 ```
+
+**Legend:**
+- ✅ Fully implemented and production-tested
+- 🔄 Stub/planned for future implementation
 
 ---
 

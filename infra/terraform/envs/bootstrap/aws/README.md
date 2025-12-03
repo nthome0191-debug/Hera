@@ -1,6 +1,8 @@
 # Bootstrap Environment - AWS
 
-This directory contains the foundational infrastructure required for Terraform state management. This must be applied **FIRST** before any other environments.
+**⚠️ CRITICAL: This must be applied FIRST before any other infrastructure.**
+
+This directory contains the foundational infrastructure required for Terraform remote state management. It creates persistent resources (~$1-2/month) that enable all other environments to use S3-backed remote state with locking.
 
 ## What This Creates
 
@@ -62,6 +64,22 @@ This bootstrap environment creates persistent resources that should **never be d
    - IAM: CreateRole, AttachRolePolicy
 
 ## Initial Setup
+
+**Recommended:** Use `infractl` for streamlined operations:
+
+```bash
+# Build infractl first
+cd $HERA_ROOT
+make build-infractl
+
+# Apply bootstrap
+infractl plan aws bootstrap
+infractl apply aws bootstrap --auto-approve
+```
+
+**Alternative:** Direct Terraform usage (shown below).
+
+---
 
 ### Step 1: Configure Variables
 

@@ -1,16 +1,22 @@
 # Hera - Multi-Cloud Bootstrap Architecture
 
-Hera's infrastructure is designed to be **cloud-agnostic**, **cost-efficient**, and **easy to recreate**.  
-To support this design, the `bootstrap` layer contains only the persistent Terraform backend resources, separated by provider:
+Hera's infrastructure is designed to be **cloud-agnostic**, **cost-efficient**, and **easy to recreate**.
+To support this design, the `bootstrap` layer contains only the persistent Terraform backend resources, separated by provider.
+
+## Implementation Status
 
 ```
 modules/bootstrap/
-├── aws/
-├── azure/
-└── gcp/
+├── aws/      ✅ Production-ready (S3 + DynamoDB)
+├── azure/    🔄 Planned (Storage Account + Table)
+└── gcp/      🔄 Planned (GCS Bucket + Firestore)
 ```
 
-Each directory contains a backend-bootstrap module for its provider.
+**Legend:**
+- ✅ Fully implemented and production-tested
+- 🔄 Stub/planned for future implementation
+
+Each bootstrap module creates the minimal persistent infrastructure required for Terraform remote state management.
 
 ---
 

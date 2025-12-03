@@ -1,6 +1,12 @@
 # Azure Network Module
 
-Provisions Azure VNet infrastructure including subnets, route tables, and NAT gateways.
+🔄 **STATUS: PLANNED - NOT YET IMPLEMENTED**
+
+This module is a **stub/placeholder** for future Azure VNet implementation. The AWS network module (`../aws/`) is production-ready and serves as the reference implementation.
+
+## Planned Features
+
+This module will provision Azure VNet infrastructure including:
 
 ## Resources Created
 

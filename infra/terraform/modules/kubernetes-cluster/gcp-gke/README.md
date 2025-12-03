@@ -1,6 +1,12 @@
 # GCP GKE Cluster Module
 
-Provisions Google Kubernetes Engine (GKE) cluster with node pools.
+🔄 **STATUS: PLANNED - NOT YET IMPLEMENTED**
+
+This module is a **stub/placeholder** for future GCP GKE implementation. The AWS EKS module (`../aws-eks/`) is production-ready and serves as the reference implementation.
+
+## Planned Features
+
+This module will provision Google Kubernetes Engine (GKE) infrastructure including:
 
 ## Resources Created
 

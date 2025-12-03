@@ -4,354 +4,331 @@ This module provisions a **production-ready Amazon EKS cluster** for Hera on top
 
 It is designed to be:
 
-- **Managed** - uses Amazon EKS for the control plane
-- **Secure** - IRSA, encrypted volumes, SG separation, private endpoint support
-- **Flexible** - multiple node groups, taints, labels, capacity types
-- **Cost-aware** - dev and prod modes via configuration
-
-This module is **optionally ephemeral**: you can destroy and recreate clusters (for dev/staging) while keeping the bootstrap + network layers intact.
+- **Managed** - uses Amazon EKS for the control plane  
+- **Secure** - IRSA, encrypted volumes, SG separation, private endpoints  
+- **Flexible** - multiple node groups, taints, labels, instance types  
+- **Cost-aware** - dev and prod modes via configuration  
+- **Ephemeral-friendly** - safe to destroy/recreate dev/stage clusters  
 
 ---
 
-## What This Module Creates
+# What This Module Creates
 
-### 1. CloudWatch Log Group for Control Plane
+## 1. CloudWatch Log Group — Control Plane Logs
 
 **Resource:** `aws_cloudwatch_log_group.eks_cluster`  
-**Function:** Stores EKS control plane logs:
-- `api`, `audit`, `authenticator`, `controllerManager`, `scheduler` (configurable via `cluster_log_types`)  
-**Config:**  
-- `cluster_log_retention_days` - retention in days (default: 7)
+Stores control-plane logs:
+- `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`  
 
-**Cost (approx):**
-- Ingestion + storage, typically **$1-$10/month** depending on traffic and retention.
+**Config:**
+- `cluster_log_retention_days`
 
-**Dev recommendation:**
-- Keep enabled but with **short retention** (7 days).  
-**Prod recommendation:**
-- Keep enabled with **7-30 days retention**, especially `api` and `audit`.
+**Cost:** low (typically $1-$10/month)
 
 ---
 
-### 2. EKS Cluster IAM Role
+## 2. EKS Cluster IAM Role
 
 **Resources:**
 - `aws_iam_role.cluster`
-- Attachments:
-  - `AmazonEKSClusterPolicy`
-  - `AmazonEKSVPCResourceController`
+- Attachments:  
+  `AmazonEKSClusterPolicy`, `AmazonEKSVPCResourceController`
 
-**Function:**  
-Permissions for the EKS control plane to manage cluster resources in your VPC.
-
-**Cost:**  
-- IAM roles and policies are free.
+Required for the control plane to manage networking resources.
 
 ---
 
-### 3. Cluster Security Group
+## 3. Cluster Security Group
 
-**Resources:**
-- `aws_security_group.cluster`
-- `aws_security_group_rule.cluster_egress`
-- `aws_security_group_rule.cluster_ingress_node_https`
+**Resource:** `aws_security_group.cluster`  
+Allows:
+- Nodes → API Server (HTTPS)
+- API Server → Nodes  
+- All outbound traffic
 
-**Function:**
-- Isolates the control plane.
-- Allows:
-  - All outbound
-  - HTTPS from nodes to API server
-  - API server to talk to nodes
-
-**Config:**
-- `vpc_id` - VPC where the SG is created.
+Protects the control plane traffic path.
 
 ---
 
-### 4. EKS Cluster (Control Plane)
+## 4. The EKS Cluster (Control Plane)
 
 **Resource:** `aws_eks_cluster.main`
 
-**Function:**  
-Creates the managed Kubernetes control plane.
+Key configs:
+- `cluster_name`
+- `region`
+- `kubernetes_version`
+- `vpc_id`
+- `private_subnet_ids`
+- `public_subnet_ids` (optional)
+- Private/public API endpoints
+- Control-plane logs
+- KMS encryption support
 
-**Config:**
-
-- `cluster_name` - name of the cluster
-- `environment` - environment (dev/staging/prod)
-- `region` - AWS region
-- `kubernetes_version` - default: `1.32`
-- `vpc_id` - underlying VPC
-- `private_subnet_ids` - used for worker nodes
-- `public_subnet_ids` - optional, used mainly for public Load Balancers
-- `enable_private_endpoint` - enable private API endpoint (default: `true`)
-- `enable_public_endpoint` - enable public API endpoint (default: `true`)
-- `authorized_networks` - CIDR blocks allowed to reach public endpoint
-- `cluster_log_types` - enabled control-plane log types
-- `enable_cluster_encryption` - enable secrets encryption using KMS
-- `cluster_encryption_kms_key_id` - KMS key used when encryption is enabled
-
-**Cost (approx):**
-- EKS control plane: ~**$0.10/hour** → **~$72/month** per cluster.
-
-**Dev recommendation:**
-- Can keep a single dev EKS cluster up or destroy nightly.
-- If using public endpoint: restrict `authorized_networks` to your IP/CIDR.
-- Consider leaving private endpoint on, public off in secure setups.
-
-**Prod recommendation:**
-- **Private endpoint:** `true`
-- **Public endpoint:** `false` or limited to known admin/CIDR ranges.
-- Always enable control plane logs.
-- Strongly consider KMS encryption in regulated environments.
+**Cost:** ~**$72/month** per control plane (fixed).
 
 ---
 
-### 5. OIDC Provider for IRSA
+## 5. OIDC Provider for IRSA (IAM Roles for Service Accounts)
 
 **Resources:**
 - `data.tls_certificate.cluster`
-- `aws_iam_openid_connect_provider.cluster` (conditional)
+- `aws_iam_openid_connect_provider.cluster`
 
-**Function:**  
-Enables **IAM Roles for Service Accounts (IRSA)** so pods can assume fine-grained IAM roles instead of using node IAM.
+Enables Kubernetes pods to assume IAM roles without EC2 instance profiles.
 
-**Config:**
-- `enable_irsa` - default: `true`
-
-**Cost:**  
-- OIDC provider is free.
-
-**Recommendation:**  
-- **Dev:** Keep enabled.  
-- **Prod:** Always enabled. Required for secure IAM for addons like EBS CSI, Cluster Autoscaler, external-dns, etc.
+**Cost:** free  
+**Recommendation:** always enabled.
 
 ---
 
-### 6. Node Group IAM Role & Security Group
+## 6. Node IAM Role & Node Security Group
 
 **Resources:**
-- `aws_iam_role.node`
-- Attachments:
-  - `AmazonEKSWorkerNodePolicy`
-  - `AmazonEKS_CNI_Policy`
-  - `AmazonEC2ContainerRegistryReadOnly`
-  - `AmazonSSMManagedInstanceCore`
-- `aws_security_group.node` and its rules:
-  - `node_ingress_self`
-  - `node_ingress_cluster`
-  - `node_egress`
+- IAM: `aws_iam_role.node` (with EKS worker policies)
+- SG: `aws_security_group.node`
 
-**Function:**
-- IAM role for EC2 worker nodes.
-- Security group for node-to-node and node-to-control-plane communication.
-
-**Cost:**  
-- IAM + SG themselves are free.
+Allows:
+- Node ↔ Node communication  
+- Node ↔ Control plane  
+- Pods ↔ External AWS services (via IRSA or node role)
 
 ---
 
-### 7. Node Launch Templates
+## 7. Node Launch Templates
 
-**Resource:** `aws_launch_template.node` (one per node group)
+**Resource:** `aws_launch_template.node`  
+Configures:
+- Root volume  
+- Instance metadata (IMDSv2)  
+- Tags  
+- Monitoring  
 
-**Function:**
-Defines:
-- Root volume size/type (`disk_size`, `gp3`, encrypted)
-- Metadata options (IMDSv2 required)
-- Monitoring
-- Tags for instances & volumes
-
-**Config via `node_groups` map:**
-- `disk_size` - per node group
-- Any instance-level tuning is driven by EKS node group configuration.
+Used automatically by EKS-managed node groups.
 
 ---
 
-### 8. EKS Node Groups
+## 8. EKS Managed Node Groups
 
-**Resource:** `aws_eks_node_group.main` (for each `node_groups` entry)
+**Resource:** `aws_eks_node_group.main`
 
-**Function:**  
-Creates managed node groups for the cluster.
+Configurable per node group:
+- `instance_types`
+- `capacity_type` (ON_DEMAND / SPOT)
+- Desired/min/max sizes
+- Labels & taints  
+- Disk size  
+- Multi-AZ placement  
 
-**Config (per node group in `node_groups`):**
-- `desired_size`, `min_size`, `max_size`
-- `instance_types` - list of EC2 types
-- `capacity_type` - `ON_DEMAND` or `SPOT`
-- `disk_size`
-- `labels` - node labels
-- `taints` - scheduling taints (key/value/effect)
-
-**Cost (approx):**
-- Driven mainly by **EC2 instance type** and hours:
-  - Example: 3 × `t3.medium` → ~**$90-$100/month**
-  - Example: 3 × `m5.large` → ~**$200+/month**
-- SPOT capacity can reduce compute cost by **50-70%**, but with eviction risk.
-
-**Dev recommendation:**
-- 1 small node group:
-  - `desired_size = 1-2`
-  - `instance_types = ["t3.medium"]` or similar
-  - `capacity_type = "SPOT"` where acceptable
-- Minimal taints; dedicated tainted pools only if testing.
-
-**Prod recommendation:**
-- At least **2-3 node groups**:
-  - On-demand group for critical workloads
-  - Spot group(s) for cost-efficient workloads
-  - Distinct labels/taints for separating system, apps, and batch workloads.
-- Use multiple instance types for Spot resilience.
+**Cost:** dominated by EC2 instances.
 
 ---
 
-### 9. EKS Addons
+## 9. EKS Addons
 
-**Local Computed Addons:**
-- `vpc-cni`
+Core addons:
+- `vpc-cni` (AWS CNI)
 - `kube-proxy`
 - `coredns`
 
-Plus:
-- Optional `aws-ebs-csi-driver` when `enable_ebs_csi_driver = true`
-- User-specified addons via `addons` variable
+Optional:
+- EBS CSI driver (default: enabled)
+- Custom addons via `addons` map  
 
-**Resource:** `aws_eks_addon.addons`
-
-**Function:**  
-Managed EKS addons with pinned versions and conflict resolution.
-
-**Config:**
-- `enable_addons` - enable default core addons
-- `enable_ebs_csi_driver` - EBS CSI driver (default: `true`)
-- `addons` - custom addons map:
-  - `version`
-  - `resolve_conflicts`
-  - `service_account_role_arn`
-
-**Cost:**
-- Addons themselves usually cost nothing extra; they run on cluster resources (nodes).
-
-**Recommendation:**
-- Dev: keep default addons, optional EBS CSI.  
-- Prod: enable EBS CSI driver, plus any storage/networking addons you require (with IRSA roles where needed).
+Managed as `aws_eks_addon` resources.
 
 ---
 
-### 10. IRSA Roles: EBS CSI Driver
+## 10. IRSA Role — EBS CSI Driver
 
-**Resources:**
-- `data.aws_iam_policy_document.ebs_csi_assume_role`
-- `aws_iam_role.ebs_csi`
-- `aws_iam_role_policy_attachment.ebs_csi`
+**Resources:**  
+- Dedicated IAM role for the controller  
+- Attached policy for provisioning EBS volumes
 
-**Function:**  
-Dedicated IAM role for the EBS CSI controller via IRSA.
-
-**Config:**
-- `enable_ebs_csi_driver` (default: `true`)
-- `enable_irsa` must be `true`
-
-**Recommendation:**
-- Dev: enabled (default) for realistic storage behavior.
-- Prod: always enabled if you use EBS volumes.
+Required for:
+- PersistentVolumes backed by AWS EBS  
 
 ---
 
-### 11. IRSA Roles: Cluster Autoscaler
+## 11. IRSA Role — Cluster Autoscaler
 
-**Resources:**
-- `data.aws_iam_policy_document.cluster_autoscaler_assume_role`
-- `aws_iam_role.cluster_autoscaler`
-- `data.aws_iam_policy_document.cluster_autoscaler`
-- `aws_iam_policy.cluster_autoscaler`
-- `aws_iam_role_policy_attachment.cluster_autoscaler`
-
-**Function:**  
-IAM role and policy for Kubernetes Cluster Autoscaler to scale node groups.
-
-**Config:**
-- `enable_cluster_autoscaler` (default: `false`)
-- `enable_irsa` must be `true` to use IRSA role.
-
-**Recommendation:**
-- Dev: optional, can be useful for dynamic testing.
-- Prod: strongly recommended for efficient scaling and cost optimization.
-
----
-
-## Inputs Overview
-
-Key inputs (see `variables.tf` for full definition):
-
-- `cluster_name` (string, required)
-- `environment` (string, required)
-- `region` (string, required)
-- `kubernetes_version` (string, default `"1.32"`)
-- `vpc_id` (string, required)
-- `private_subnet_ids` (list(string), required)
-- `public_subnet_ids` (list(string), default `[]`)
-- `enable_private_endpoint` (bool, default `true`)
-- `enable_public_endpoint` (bool, default `true`)
-- `authorized_networks` (list(string), default `["0.0.0.0/0"]`)
-- `enable_irsa` (bool, default `true`)
-- `cluster_log_types` (list(string), default control-plane logs)
-- `cluster_log_retention_days` (number, default `7`)
-- `node_groups` (map(object), default `{}`)
-- `enable_cluster_encryption` (bool, default `false`)
-- `cluster_encryption_kms_key_id` (string, default `""`)
-- `enable_addons` (bool, default `true`)
-- `addons` (map(object), default `{}`)
-- `enable_cluster_autoscaler` (bool, default `false`)
-- `enable_ebs_csi_driver` (bool, default `true`)
-- `enable_efs_csi_driver` (bool, default `false`)
-- `tags` (map(string), default `{}`)
-
----
-
-## Dev vs Prod Recommended Profiles
-
-### Dev / Early Stage
-
-- 1 small node group (`SPOT`, 1-2 nodes)
-- `enable_public_endpoint = true` but restricted `authorized_networks` (your office/home CIDR)
-- `enable_private_endpoint = true`
-- `cluster_log_retention_days = 7`
-- `enable_cluster_encryption = false` (unless you need strict compliance)
-- `enable_cluster_autoscaler = false` or minimal
-- Destroy cluster nightly if you want to save more
-
-### Production
-
-- Multi-AZ private subnets for nodes
-- `enable_private_endpoint = true`
-- `enable_public_endpoint = false` or very restricted
-- **Multiple node groups:**
-  - On-demand for system + critical apps
-  - Spot for non-critical workloads
+Optional, enabled via:
 - `enable_cluster_autoscaler = true`
-- `enable_cluster_encryption = true` with managed KMS key
-- `cluster_log_retention_days = 14-30`
-- IRSA enabled and used for all system components/addons
+
+Creates:
+- IAM role for CA  
+- IAM policy for scaling node groups
 
 ---
 
-## Approximate Monthly Cost (One Small Cluster)
+# Inputs Overview (Most Important)
 
-Highly dependent on node config; example for a **small dev cluster**:
-
-- EKS control plane: ~**$72/month**
-- 2 × `t3.medium` nodes (on-demand): ~**$60-$80/month**
-- CloudWatch logs (7 days, low traffic): ~**$1-$5/month**
-
-**Total dev ballpark:** ~**$130-$160/month**
-
-For production with more nodes and multiple node groups, expect **hundreds of USD/month**, dominated by EC2 nodes rather than EKS control plane itself.
+- `cluster_name`, `environment`, `region`
+- `vpc_id`, `private_subnet_ids`, `public_subnet_ids`
+- `kubernetes_version` (default `"1.32"`)
+- Endpoint settings:  
+  - `enable_private_endpoint`  
+  - `enable_public_endpoint`  
+  - `authorized_networks`
+- `enable_irsa` (default: true)
+- `node_groups` (map)
+- Logging configurations  
+- Addons & driver toggles  
+- `enable_cluster_encryption`, `kms_key_id`
+- `tags`
 
 ---
 
-## Notes
+# Dev vs Prod Profiles
 
-- This module assumes the **network module** (VPC, subnets, endpoints, NAT) is already applied.
-- This module should be safe to **destroy and recreate** without affecting the bootstrap and network layers.
-- Always plan node group sizes and instance types according to real workload and SLOs.
+## Dev / Early Stage
+
+Recommended:
+- 1 small SPOT node group (`t3.medium` or similar)
+- 1-2 nodes
+- Public API endpoint with restricted CIDR  
+- Log retention = 7 days  
+- EBS CSI = optional  
+- Autoscaler = optional  
+- Easy to destroy nightly  
+
+## Production
+
+Recommended:
+- Private endpoint only (or restricted public)
+- Multi-AZ node groups  
+- Separate node groups:
+  - On-demand system  
+  - Spot application nodes  
+- Autoscaler enabled  
+- EBS CSI enabled  
+- KMS encryption enabled  
+- Log retention 14-30 days  
+- IRSA for all pods with AWS access  
+
+---
+
+# Approximate Monthly Cost (Small Dev Cluster)
+
+- EKS control plane: **~$72**
+- 2 × `t3.medium` nodes: **$60-$80**
+- CloudWatch logs: **$1-$5**
+
+**Total:** ~**$130-$160/month**
+
+For production clusters, cost scales with node count and instance size.
+
+---
+
+# AWS EKS Architecture Components 
+
+## Kubernetes Node Internals
+
+### **kubelet**
+- Runs on every EC2 worker node.
+- Manages pods, containers, volumes, liveness probes, etc.
+- Talks to the API Server (secure TLS).  
+
+Without kubelet, no pods can run.
+
+---
+
+### **kube-proxy**
+- Implements Service → Pod networking rules.
+- Programs iptables or IPVS rules on nodes.
+- Routes ClusterIP service traffic to pods.
+
+Deployed as a DaemonSet managed as an EKS Addon.
+
+---
+
+## DNS & Networking
+
+### **CoreDNS**
+- Internal DNS server for Kubernetes.
+- Resolves:
+  - `svc.namespace.svc.cluster.local`
+  - External names via upstream DNS
+
+If CoreDNS is unhealthy → the entire cluster breaks.
+
+---
+
+### **AWS VPC CNI (`aws-node`)**
+This is the **CNI plugin** responsible for Pod networking:
+- Each pod receives a **real VPC IP**.  
+- CNI manages **ENIs** (Elastic Network Interfaces) and **Pod IPs**.  
+- Node instance type limits how many ENIs & Pod IPs you can allocate.
+
+**Example:**  
+`t3.medium` → ~17 pods per node (ENI/IP limits)
+
+---
+
+## ENIs (Elastic Network Interfaces)
+AWS attaches ENIs to each EC2 node:
+- Each ENI has a number of IPv4 addresses.
+- Each Pod consumes a real VPC IP address.
+- Pod density is limited by ENI/IP limits.
+
+This is why instance types matter for Kubernetes capacity.
+
+---
+
+# What Happens After Terraform Creates the EKS Cluster? (Day-1 Guide)
+
+These are the steps to begin using your new EKS cluster.
+
+## 1. Configure `kubectl`
+
+```
+aws eks update-kubeconfig \
+  --region <region> \
+  --name <cluster_name>
+```
+```
+kubectl config rename-context <long name> <friendly name>
+```
+
+Verify:
+```
+kubectl get nodes
+```
+
+---
+
+## 2. Verify System Components
+
+```
+kubectl get pods -n kube-system
+```
+
+Expect:
+- `coredns-*`
+- `aws-node-*` (VPC CNI)
+- `kube-proxy-*`
+- `ebs-csi-controller-*` (if enabled)
+- `eks-pod-identity-*` (managed IRSA, if enabled)
+
+---
+
+# Notes
+
+- This module assumes the network layer is already created.  
+- This module is **safe to destroy and recreate** for dev/stage use.  
+- System components (CoreDNS, kube-proxy, CNI) are managed via EKS Addons.  
+- IRSA is the recommended way to give pods AWS permissions — never use node IAM for pods.
+
+---
+
+# Summary
+
+This module provides a **secure, production-ready, cost-conscious** AWS EKS cluster with:
+- IAM roles  
+- Security groups  
+- Node groups  
+- Addons  
+- IRSA  
+- Optional encryption  
+- Autoscaler support
+

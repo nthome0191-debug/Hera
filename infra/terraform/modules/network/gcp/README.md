@@ -1,6 +1,12 @@
 # GCP Network Module
 
-Provisions GCP VPC infrastructure including subnets, Cloud Router, and Cloud NAT.
+🔄 **STATUS: PLANNED - NOT YET IMPLEMENTED**
+
+This module is a **stub/placeholder** for future GCP VPC implementation. The AWS network module (`../aws/`) is production-ready and serves as the reference implementation.
+
+## Planned Features
+
+This module will provision GCP VPC infrastructure including:
 
 ## Resources Created
 
