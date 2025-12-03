@@ -357,6 +357,14 @@ resource "aws_flow_log" "main" {
   iam_role_arn    = aws_iam_role.flow_logs[0].arn
   log_destination = aws_cloudwatch_log_group.flow_logs[0].arn
 
+  # Explicit dependencies to ensure proper destroy order
+  # During destroy: flow log must be deleted BEFORE log group and IAM resources
+  depends_on = [
+    aws_cloudwatch_log_group.flow_logs,
+    aws_iam_role.flow_logs,
+    aws_iam_role_policy.flow_logs
+  ]
+
   tags = merge(
     var.tags,
     {
