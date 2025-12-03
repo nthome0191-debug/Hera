@@ -117,3 +117,75 @@ output "cluster_autoscaler_role_arn" {
   description = "IAM role ARN for Cluster Autoscaler"
   value       = module.eks_cluster.cluster_autoscaler_role_arn
 }
+
+# ============================================
+# Platform Layer Outputs
+# ============================================
+
+# Gitea Outputs
+output "gitea_admin_username" {
+  description = "Gitea admin username"
+  value       = module.gitea.admin_username
+}
+
+output "gitea_admin_password" {
+  description = "Gitea admin password"
+  value       = module.gitea.admin_password
+  sensitive   = true
+}
+
+output "gitea_service_url" {
+  description = "Gitea in-cluster service URL"
+  value       = module.gitea.service_url
+}
+
+output "gitea_port_forward" {
+  description = "Command to access Gitea UI"
+  value       = module.gitea.kubectl_port_forward
+}
+
+# ArgoCD Outputs
+output "argocd_admin_password" {
+  description = "ArgoCD admin password"
+  value       = module.argocd.admin_password
+  sensitive   = true
+}
+
+output "argocd_port_forward" {
+  description = "Command to access ArgoCD UI"
+  value       = module.argocd.kubectl_port_forward
+}
+
+# Quick Access Guide
+output "platform_access" {
+  description = "How to access platform services"
+  value       = <<-EOT
+    ============================================
+    Platform Services Access Guide
+    ============================================
+
+    Gitea (In-Cluster Git) - Namespace: git
+    - Port-forward: ${module.gitea.kubectl_port_forward}
+    - URL: http://localhost:3000
+    - Username: ${module.gitea.admin_username}
+    - Password: $(terraform output -raw gitea_admin_password)
+    - Service URL: ${module.gitea.service_url}
+
+    ArgoCD (GitOps) - Namespace: argocd
+    - Port-forward: ${module.argocd.kubectl_port_forward}
+    - URL: https://localhost:8080
+    - Username: admin
+    - Password: $(terraform output -raw argocd_admin_password)
+
+    Next Steps:
+    1. Access Gitea and create a repository "gitops-repo"
+    2. Push your Kubernetes manifests to Gitea
+    3. Uncomment git_repository_* variables in main.tf
+    4. Run 'terraform apply' to connect ArgoCD to Gitea
+    5. Access ArgoCD and create applications
+    6. Watch ArgoCD automatically sync your applications!
+
+    Note: Services are in separate namespaces for isolation.
+    They communicate via Kubernetes DNS across namespaces.
+  EOT
+}
