@@ -1,6 +1,3 @@
-# ============================================
-# ArgoCD Outputs
-# ============================================
 
 output "namespace" {
   description = "Kubernetes namespace where ArgoCD is deployed"

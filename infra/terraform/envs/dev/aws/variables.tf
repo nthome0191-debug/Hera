@@ -1,102 +1,38 @@
 # Development Environment Variables - AWS
 # These are variable declarations, actual values go in terraform.tfvars
 
-# TODO: Define variables for the environment
-#
-# variable "environment" {
-#   description = "Environment name"
-#   type        = string
-#   default     = "dev"
-# }
-#
-# variable "region" {
-#   description = "AWS region"
-#   type        = string
-# }
-#
-# variable "cluster_name" {
-#   description = "EKS cluster name"
-#   type        = string
-# }
-#
-# variable "kubernetes_version" {
-#   description = "Kubernetes version"
-#   type        = string
-# }
-#
-# variable "vpc_cidr" {
-#   description = "VPC CIDR block"
-#   type        = string
-# }
-#
-# variable "availability_zones" {
-#   description = "List of availability zones"
-#   type        = list(string)
-# }
-#
-# variable "private_subnet_cidrs" {
-#   description = "Private subnet CIDR blocks"
-#   type        = list(string)
-# }
-#
-# variable "public_subnet_cidrs" {
-#   description = "Public subnet CIDR blocks"
-#   type        = list(string)
-# }
-#
-# variable "enable_nat_gateway" {
-#   description = "Enable NAT gateway"
-#   type        = bool
-#   default     = true
-# }
-#
-# variable "node_groups" {
-#   description = "EKS node group configurations"
-#   type        = any
-# }
-#
-# variable "enable_private_endpoint" {
-#   description = "Enable private cluster endpoint"
-#   type        = bool
-#   default     = true
-# }
-#
-# variable "enable_public_endpoint" {
-#   description = "Enable public cluster endpoint"
-#   type        = bool
-#   default     = true
-# }
-#
-# variable "authorized_networks" {
-#   description = "CIDR blocks allowed to access public endpoint"
-#   type        = list(string)
-# }
-#
-# variable "tags" {
-#   description = "Common tags for all resources"
-#   type        = map(string)
-#   default     = {}
-# }
+
+# ============================================
+# Core Environment Variables
+# ============================================
 
 variable "region" {
-  type = string
+  description = "AWS region for this environment"
+  type        = string
 }
 
 variable "aws_account_id" {
-  type = string
+  description = "AWS Account ID"
+  type        = string
 }
 
 variable "project" {
-  type    = string
-  default = "hera"
+  description = "Project name (for tagging and naming)"
+  type        = string
+  default     = "hera"
 }
 
 variable "environment" {
-  type    = string
-  default = "dev"
+  description = "Environment name (dev/staging/prod)"
+  type        = string
+  default     = "dev"
 }
 
-# Network variables
+
+# ============================================
+# Network Variables
+# ============================================
+
 variable "vpc_cidr" {
   description = "VPC CIDR block"
   type        = string
@@ -124,22 +60,45 @@ variable "enable_nat_gateway" {
 }
 
 variable "single_nat_gateway" {
-  description = "Use a single NAT Gateway for all private subnets (cost-effective for dev)"
+  description = "Use single NAT gateway (cost optimized)"
   type        = bool
   default     = true
 }
 
 variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services"
+  description = "Enable VPC endpoints"
   type        = bool
   default     = false
 }
 
 variable "vpc_endpoints" {
-  description = "List of VPC endpoints to create (s3, ecr_api, ecr_dkr, ec2, ec2messages, sts, logs)"
+  description = "List of VPC endpoints (s3, ecr_api, ecr_dkr, sts, logs, etc)"
   type        = list(string)
   default     = []
 }
+
+variable "enable_flow_logs" {
+  description = "Enable VPC Flow Logs"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_retention_days" {
+  description = "Retention of flow logs in CloudWatch"
+  type        = number
+  default     = 1
+}
+
+variable "flow_logs_traffic_type" {
+  description = "Traffic type for VPC Flow Logs"
+  type        = string
+  default     = "ALL"
+}
+
+
+# ============================================
+# EKS Cluster Variables
+# ============================================
 
 variable "cluster_name" {
   description = "EKS cluster name"
@@ -147,25 +106,6 @@ variable "cluster_name" {
   default     = ""
 }
 
-variable "enable_flow_logs" {
-  description = "Enable VPC Flow Logs to CloudWatch"
-  type        = bool
-  default     = false
-}
-
-variable "flow_logs_retention_days" {
-  description = "CloudWatch log retention in days for VPC Flow Logs. Dev: 1 day, Prod: 3 days recommended"
-  type        = number
-  default     = 1
-}
-
-variable "flow_logs_traffic_type" {
-  description = "Type of traffic to log: ACCEPT, REJECT, or ALL"
-  type        = string
-  default     = "ALL"
-}
-
-# EKS Configuration
 variable "kubernetes_version" {
   description = "Kubernetes version for the EKS cluster"
   type        = string
@@ -173,19 +113,19 @@ variable "kubernetes_version" {
 }
 
 variable "enable_private_endpoint" {
-  description = "Enable private API server endpoint"
+  description = "Enable private EKS API endpoint"
   type        = bool
   default     = true
 }
 
 variable "enable_public_endpoint" {
-  description = "Enable public API server endpoint"
+  description = "Enable public EKS API endpoint"
   type        = bool
   default     = true
 }
 
 variable "authorized_networks" {
-  description = "CIDR blocks allowed to access public endpoint"
+  description = "CIDRs allowed for public API access"
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
@@ -210,31 +150,31 @@ variable "node_groups" {
 }
 
 variable "enable_cluster_autoscaler" {
-  description = "Enable IAM policy for Cluster Autoscaler"
+  description = "Enable IAM permissions for Cluster Autoscaler"
   type        = bool
   default     = false
 }
 
 variable "cluster_log_retention_days" {
-  description = "CloudWatch log retention in days for EKS control plane logs"
+  description = "Retention for EKS control plane logs"
   type        = number
   default     = 1
 }
 
 variable "enable_irsa" {
-  description = "Enable IAM Roles for Service Accounts (IRSA)"
+  description = "Enable IAM Roles for Service Accounts"
   type        = bool
   default     = true
 }
 
 variable "use_random_suffix" {
-  description = "Add random suffix to EKS resources to avoid naming conflicts during destroy/recreate cycles"
+  description = "Append random suffix to avoid naming collisions"
   type        = bool
   default     = true
 }
 
 variable "eks_addons" {
-  description = "EKS addons configuration. Each addon can be enabled/disabled individually with specific versions"
+  description = "EKS Addons configuration"
   type = object({
     vpc_cni = object({
       enabled                  = bool
@@ -261,30 +201,51 @@ variable "eks_addons" {
       service_account_role_arn = string
     })
   })
-  default = {
-    vpc_cni = {
-      enabled                  = true
-      version                  = "v1.18.1-eksbuild.3"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-    kube_proxy = {
-      enabled                  = true
-      version                  = "v1.32.0-eksbuild.5"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-    coredns = {
-      enabled                  = true
-      version                  = "v1.11.3-eksbuild.2"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-    aws_ebs_csi_driver = {
-      enabled                  = true
-      version                  = "v1.37.0-eksbuild.1"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-  }
+  default = {}
+}
+
+
+# ============================================
+# Platform - Gitea Variables
+# ============================================
+
+variable "gitea_admin_username" {
+  description = "Admin username for the Gitea installation"
+  type        = string
+  default     = "gitea-admin"
+}
+
+variable "gitea_admin_email" {
+  description = "Admin email for Gitea"
+  type        = string
+  default     = "admin@local"
+}
+
+variable "gitea_admin_password" {
+  description = "Optional preset password for Gitea admin (random if empty)"
+  type        = string
+  default     = ""
+}
+
+
+# ============================================
+# Platform - ArgoCD GitOps (Optional)
+# ============================================
+
+variable "argocd_git_repository_url" {
+  description = "Optional Git repository URL for ArgoCD integration"
+  type        = string
+  default     = ""
+}
+
+variable "argocd_git_repository_username" {
+  description = "Username for ArgoCD GitOps repo"
+  type        = string
+  default     = ""
+}
+
+variable "argocd_git_repository_password" {
+  description = "Password/token for ArgoCD GitOps repo"
+  type        = string
+  default     = ""
 }

@@ -24,6 +24,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.11"
     }
+    gitea = {
+      source  = "go-gitea/gitea"
+      version = "~> 0.20"
+    }
   }
 }
 
@@ -39,8 +43,8 @@ provider "aws" {
   }
 }
 
-# Kubernetes provider - configured after EKS cluster exists
 provider "kubernetes" {
+  alias                  = "helm"
   host                   = module.eks_cluster.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks_cluster.cluster_ca_certificate)
 
@@ -58,13 +62,12 @@ provider "kubernetes" {
   }
 }
 
-# Helm provider - configured after EKS cluster exists
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = module.eks_cluster.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks_cluster.cluster_ca_certificate)
 
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
       args = [

@@ -1,10 +1,3 @@
-# Development Environment - AWS
-# This file orchestrates network, cluster, and platform modules
-# Contains only composition logic, no business logic
-#
-# IMPORTANT: This environment uses remote state backed by S3.
-# The S3 bucket and DynamoDB table must be created FIRST by applying
-# the bootstrap environment (envs/bootstrap/aws/)
 
 locals {
   tags = {
@@ -55,18 +48,12 @@ module "eks_cluster" {
   tags                        = local.tags
 }
 
-# ============================================
-# Platform Layer: Gitea + ArgoCD
-# ============================================
-# Gitea provides in-cluster Git for dev (fast iteration, no external deps)
-# ArgoCD provides GitOps continuous delivery
-# Each service deployed to its own namespace for isolation
 
 module "gitea" {
   source = "../../../modules/platform/gitea"
 
   cluster_name     = var.cluster_name
-  namespace        = "git"  # Separate namespace for Gitea
+  namespace        = "git"
   create_namespace = true
   admin_username   = "gitea-admin"
   admin_email      = "admin@dev.local"
@@ -75,24 +62,36 @@ module "gitea" {
   depends_on = [module.eks_cluster]
 }
 
+provider "gitea" {
+  base_url = module.gitea.service_url
+  username = module.gitea.admin_username
+  password = module.gitea.admin_password
+
+  insecure = true
+}
+
+module "gitops_repository" {
+  source = "../../../modules/gitea/repository"
+
+  name            = "gitops-repo"
+  description     = "GitOps repository for ArgoCD"
+  private         = true
+
+  readme_content  = "# GitOps Repository\nManaged by Terraform"
+}
+
+
 module "argocd" {
   source = "../../../modules/platform/argocd"
 
   cluster_name     = var.cluster_name
-  namespace        = "argocd"  # Separate namespace for ArgoCD
+  namespace        = "argocd"
   create_namespace = true
 
-  # Connect ArgoCD to in-cluster Gitea (after you create a repo in Gitea)
-  # Note: Uncomment these lines AFTER:
-  # 1. Deploying the infrastructure (terraform apply)
-  # 2. Creating a repository "gitops-repo" in Gitea UI
-  # 3. Running terraform apply again to create the connection
-  #
-  # git_repository_url      = "${module.gitea.service_url}/gitea-admin/gitops-repo"
-  # git_repository_username = module.gitea.admin_username
-  # git_repository_password = module.gitea.admin_password
+  git_repository_url      = module.gitops_repository.clone_url
+  git_repository_username = module.gitea.admin_username
+  git_repository_password = module.gitea.admin_password
 
-  # ArgoCD configuration (dev-optimized, minimal resources)
   values = yamlencode({
     server = {
       replicas = 1
@@ -119,5 +118,8 @@ module "argocd" {
 
   tags = local.tags
 
-  depends_on = [module.gitea]
+  depends_on = [
+    module.gitops_repository,
+    module.gitea
+  ]
 }

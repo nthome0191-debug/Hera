@@ -1,6 +1,3 @@
-# ============================================
-# Core Configuration
-# ============================================
 
 variable "cluster_name" {
   description = "Name of the Kubernetes cluster"
@@ -24,11 +21,6 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
-# ============================================
-# Gitea Configuration
-# ============================================
-
 variable "chart_version" {
   description = "Gitea Helm chart version"
   type        = string

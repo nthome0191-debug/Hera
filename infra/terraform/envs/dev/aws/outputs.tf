@@ -156,6 +156,17 @@ output "argocd_port_forward" {
   value       = module.argocd.kubectl_port_forward
 }
 
+# Gitea Repository
+output "gitea_repository_url" {
+  description = "Gitea repository URL for GitOps"
+  value       = gitea_repository.gitops.html_url
+}
+
+output "gitea_repository_clone_url" {
+  description = "Git clone URL for the GitOps repository"
+  value       = gitea_repository.gitops.clone_url
+}
+
 # Quick Access Guide
 output "platform_access" {
   description = "How to access platform services"
@@ -166,26 +177,34 @@ output "platform_access" {
 
     Gitea (In-Cluster Git) - Namespace: git
     - Port-forward: ${module.gitea.kubectl_port_forward}
-    - URL: http://localhost:3000
+    - Web UI: http://localhost:3000
     - Username: ${module.gitea.admin_username}
     - Password: $(terraform output -raw gitea_admin_password)
     - Service URL: ${module.gitea.service_url}
+    - Repository: ${gitea_repository.gitops.html_url}
 
     ArgoCD (GitOps) - Namespace: argocd
     - Port-forward: ${module.argocd.kubectl_port_forward}
-    - URL: https://localhost:8080
+    - Web UI: https://localhost:8080
     - Username: admin
     - Password: $(terraform output -raw argocd_admin_password)
 
+    GitOps Repository (Auto-Created):
+    - Name: ${gitea_repository.gitops.name}
+    - Clone URL: ${gitea_repository.gitops.clone_url}
+    - Web URL: ${gitea_repository.gitops.html_url}
+
     Next Steps:
-    1. Access Gitea and create a repository "gitops-repo"
-    2. Push your Kubernetes manifests to Gitea
-    3. Uncomment git_repository_* variables in main.tf
-    4. Run 'terraform apply' to connect ArgoCD to Gitea
-    5. Access ArgoCD and create applications
+    1. Start port-forward to Gitea: ${module.gitea.kubectl_port_forward}
+    2. Clone the repository: git clone ${gitea_repository.gitops.clone_url}
+    3. Add your Kubernetes manifests to the repository
+    4. Push changes: git add . && git commit -m "Add manifests" && git push
+    5. Access ArgoCD and create applications pointing to:
+       ${module.gitea.service_url}/${module.gitea.admin_username}/gitops-repo
     6. Watch ArgoCD automatically sync your applications!
 
     Note: Services are in separate namespaces for isolation.
     They communicate via Kubernetes DNS across namespaces.
+    The ArgoCD → Gitea connection was configured automatically.
   EOT
 }
