@@ -49,6 +49,9 @@ module "eks_cluster" {
   authorized_networks         = var.authorized_networks
   enable_cluster_autoscaler   = var.enable_cluster_autoscaler
   cluster_log_retention_days  = var.cluster_log_retention_days
+  enable_irsa                 = var.enable_irsa
+  use_random_suffix           = var.use_random_suffix
+  eks_addons                  = var.eks_addons
   tags                        = local.tags
 }
 #

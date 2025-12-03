@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 1.6.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
@@ -27,7 +16,7 @@ variable "region" {
 variable "kubernetes_version" {
   description = "Kubernetes version to use for the EKS cluster"
   type        = string
-  default     = "1.31"
+  default     = "1.32"
 }
 
 variable "vpc_id" {
@@ -113,20 +102,60 @@ variable "cluster_encryption_kms_key_id" {
   default     = ""
 }
 
-variable "enable_addons" {
-  description = "Enable EKS addons"
-  type        = bool
-  default     = true
-}
-
-variable "addons" {
-  description = "Map of EKS addon configurations"
-  type = map(object({
-    version                  = string
-    resolve_conflicts        = string
-    service_account_role_arn = string
-  }))
-  default = {}
+variable "eks_addons" {
+  description = "EKS addons configuration. Each addon can be enabled/disabled individually with specific versions"
+  type = object({
+    vpc_cni = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    kube_proxy = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    coredns = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    aws_ebs_csi_driver = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+  })
+  default = {
+    vpc_cni = {
+      enabled                  = true
+      version                  = "v1.18.1-eksbuild.3"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    kube_proxy = {
+      enabled                  = true
+      version                  = "v1.32.0-eksbuild.5"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    coredns = {
+      enabled                  = true
+      version                  = "v1.11.3-eksbuild.2"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    aws_ebs_csi_driver = {
+      enabled                  = true
+      version                  = "v1.37.0-eksbuild.1"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+  }
 }
 
 variable "enable_cluster_autoscaler" {
@@ -135,16 +164,10 @@ variable "enable_cluster_autoscaler" {
   default     = false
 }
 
-variable "enable_ebs_csi_driver" {
-  description = "Enable EBS CSI driver addon"
+variable "use_random_suffix" {
+  description = "Add random suffix to EKS resources to avoid naming conflicts during destroy/recreate cycles"
   type        = bool
   default     = true
-}
-
-variable "enable_efs_csi_driver" {
-  description = "Enable EFS CSI driver addon"
-  type        = bool
-  default     = false
 }
 
 variable "tags" {

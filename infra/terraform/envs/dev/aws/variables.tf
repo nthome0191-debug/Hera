@@ -169,7 +169,7 @@ variable "flow_logs_traffic_type" {
 variable "kubernetes_version" {
   description = "Kubernetes version for the EKS cluster"
   type        = string
-  default     = "1.31"
+  default     = "1.32"
 }
 
 variable "enable_private_endpoint" {
@@ -221,22 +221,70 @@ variable "cluster_log_retention_days" {
   default     = 1
 }
 
-variable "enable_addons" {
-  type    = bool
-  default = false
-}
-
 variable "enable_irsa" {
-  type    = bool
-  default = false
+  description = "Enable IAM Roles for Service Accounts (IRSA)"
+  type        = bool
+  default     = true
 }
 
-variable "enable_ebs_csi_driver" {
-  type    = bool
-  default = false
+variable "use_random_suffix" {
+  description = "Add random suffix to EKS resources to avoid naming conflicts during destroy/recreate cycles"
+  type        = bool
+  default     = true
 }
 
-variable "addons" {
-  type    = map(any)
-  default = {}
+variable "eks_addons" {
+  description = "EKS addons configuration. Each addon can be enabled/disabled individually with specific versions"
+  type = object({
+    vpc_cni = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    kube_proxy = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    coredns = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+    aws_ebs_csi_driver = object({
+      enabled                  = bool
+      version                  = string
+      resolve_conflicts        = string
+      service_account_role_arn = string
+    })
+  })
+  default = {
+    vpc_cni = {
+      enabled                  = true
+      version                  = "v1.18.1-eksbuild.3"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    kube_proxy = {
+      enabled                  = true
+      version                  = "v1.32.0-eksbuild.5"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    coredns = {
+      enabled                  = true
+      version                  = "v1.11.3-eksbuild.2"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    aws_ebs_csi_driver = {
+      enabled                  = true
+      version                  = "v1.37.0-eksbuild.1"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+  }
 }

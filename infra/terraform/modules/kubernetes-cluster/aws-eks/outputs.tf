@@ -3,6 +3,11 @@ output "cluster_id" {
   value       = aws_eks_cluster.main.id
 }
 
+output "cluster_name" {
+  description = "The name of the EKS cluster (with random suffix if enabled)"
+  value       = local.cluster_name_with_suffix
+}
+
 output "cluster_arn" {
   description = "The Amazon Resource Name (ARN) of the cluster"
   value       = aws_eks_cluster.main.arn
@@ -101,7 +106,7 @@ output "cloudwatch_log_group_arn" {
 
 output "ebs_csi_driver_role_arn" {
   description = "ARN of IAM role for EBS CSI driver"
-  value       = var.enable_ebs_csi_driver && var.enable_irsa ? aws_iam_role.ebs_csi[0].arn : null
+  value       = var.eks_addons.aws_ebs_csi_driver.enabled && var.enable_irsa ? aws_iam_role.ebs_csi[0].arn : null
 }
 
 output "cluster_autoscaler_role_arn" {
@@ -112,7 +117,7 @@ output "cluster_autoscaler_role_arn" {
 output "kubeconfig" {
   description = "kubectl config file contents for this EKS cluster"
   value = templatefile("${path.module}/templates/kubeconfig.tpl", {
-    cluster_name           = aws_eks_cluster.main.name
+    cluster_name           = local.cluster_name_with_suffix
     cluster_endpoint       = aws_eks_cluster.main.endpoint
     cluster_ca_certificate = aws_eks_cluster.main.certificate_authority[0].data
     region                 = var.region

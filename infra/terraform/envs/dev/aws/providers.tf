@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/tls"
       version = "~> 4.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
     # Uncomment when implementing platform modules
     # kubernetes = {
     #   source  = "hashicorp/kubernetes"

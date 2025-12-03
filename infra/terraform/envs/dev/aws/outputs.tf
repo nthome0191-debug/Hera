@@ -37,6 +37,11 @@ output "cluster_id" {
   value       = module.eks_cluster.cluster_id
 }
 
+output "cluster_name" {
+  description = "EKS cluster name (with random suffix if enabled)"
+  value       = module.eks_cluster.cluster_name
+}
+
 output "cluster_arn" {
   description = "EKS cluster ARN"
   value       = module.eks_cluster.cluster_arn

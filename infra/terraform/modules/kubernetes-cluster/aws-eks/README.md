@@ -80,7 +80,7 @@ Creates the managed Kubernetes control plane.
 - `cluster_name` - name of the cluster
 - `environment` - environment (dev/staging/prod)
 - `region` - AWS region
-- `kubernetes_version` - default: `1.31`
+- `kubernetes_version` - default: `1.32`
 - `vpc_id` - underlying VPC
 - `private_subnet_ids` - used for worker nodes
 - `public_subnet_ids` - optional, used mainly for public Load Balancers
@@ -287,7 +287,7 @@ Key inputs (see `variables.tf` for full definition):
 - `cluster_name` (string, required)
 - `environment` (string, required)
 - `region` (string, required)
-- `kubernetes_version` (string, default `"1.31"`)
+- `kubernetes_version` (string, default `"1.32"`)
 - `vpc_id` (string, required)
 - `private_subnet_ids` (list(string), required)
 - `public_subnet_ids` (list(string), default `[]`)

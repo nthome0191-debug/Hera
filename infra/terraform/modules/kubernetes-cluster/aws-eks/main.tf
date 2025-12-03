@@ -1,17 +1,44 @@
+terraform {
+  required_version = ">= 1.6.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+  }
+}
+
+# Random suffix to avoid naming conflicts during destroy/recreate cycles
+resource "random_string" "suffix" {
+  count   = var.use_random_suffix ? 1 : 0
+  length  = 6
+  special = false
+  upper   = false
+}
+
+locals {
+  cluster_name_with_suffix = var.use_random_suffix ? "${var.cluster_name}-${random_string.suffix[0].result}" : var.cluster_name
+}
+
 resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name              = "/aws/eks/${var.cluster_name}/cluster"
+  name              = "/aws/eks/${local.cluster_name_with_suffix}/cluster"
   retention_in_days = var.cluster_log_retention_days
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-eks-logs"
+      Name = "${local.cluster_name_with_suffix}-eks-logs"
     }
   )
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-eks-cluster-role"
+  name = "${local.cluster_name_with_suffix}-eks-cluster-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -27,7 +54,7 @@ resource "aws_iam_role" "cluster" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-eks-cluster-role"
+      Name = "${local.cluster_name_with_suffix}-eks-cluster-role"
     }
   )
 }
@@ -43,14 +70,14 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSVPCResourceControlle
 }
 
 resource "aws_security_group" "cluster" {
-  name_prefix = "${var.cluster_name}-eks-cluster-"
+  name_prefix = "${local.cluster_name_with_suffix}-eks-cluster-"
   description = "Security group for EKS cluster control plane"
   vpc_id      = var.vpc_id
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-eks-cluster-sg"
+      Name = "${local.cluster_name_with_suffix}-eks-cluster-sg"
     }
   )
 
@@ -70,7 +97,7 @@ resource "aws_security_group_rule" "cluster_egress" {
 }
 
 resource "aws_eks_cluster" "main" {
-  name     = var.cluster_name
+  name     = local.cluster_name_with_suffix
   role_arn = aws_iam_role.cluster.arn
   version  = var.kubernetes_version
 
@@ -103,7 +130,7 @@ resource "aws_eks_cluster" "main" {
   tags = merge(
     var.tags,
     {
-      Name = var.cluster_name
+      Name = local.cluster_name_with_suffix
     }
   )
 }
@@ -123,12 +150,12 @@ resource "aws_iam_openid_connect_provider" "cluster" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-irsa"
+      Name = "${local.cluster_name_with_suffix}-irsa"
     }
   )
 }
 resource "aws_iam_role" "node" {
-  name = "${var.cluster_name}-eks-node-role"
+  name = "${local.cluster_name_with_suffix}-eks-node-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -144,7 +171,7 @@ resource "aws_iam_role" "node" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-eks-node-role"
+      Name = "${local.cluster_name_with_suffix}-eks-node-role"
     }
   )
 }
@@ -170,15 +197,15 @@ resource "aws_iam_role_policy_attachment" "node_AmazonSSMManagedInstanceCore" {
 }
 
 resource "aws_security_group" "node" {
-  name_prefix = "${var.cluster_name}-eks-node-"
+  name_prefix = "${local.cluster_name_with_suffix}-eks-node-"
   description = "Security group for EKS worker nodes"
   vpc_id      = var.vpc_id
 
   tags = merge(
     var.tags,
     {
-      Name                                        = "${var.cluster_name}-eks-node-sg"
-      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+      Name                                                       = "${local.cluster_name_with_suffix}-eks-node-sg"
+      "kubernetes.io/cluster/${local.cluster_name_with_suffix}" = "owned"
     }
   )
 
@@ -230,8 +257,8 @@ resource "aws_security_group_rule" "cluster_ingress_node_https" {
 resource "aws_launch_template" "node" {
   for_each = var.node_groups
 
-  name_prefix = "${var.cluster_name}-${each.key}-"
-  description = "Launch template for ${var.cluster_name} EKS node group ${each.key}"
+  name_prefix = "${local.cluster_name_with_suffix}-${each.key}-"
+  description = "Launch template for ${local.cluster_name_with_suffix} EKS node group ${each.key}"
 
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -260,7 +287,7 @@ resource "aws_launch_template" "node" {
     tags = merge(
       var.tags,
       {
-        Name = "${var.cluster_name}-${each.key}-node"
+        Name = "${local.cluster_name_with_suffix}-${each.key}-node"
       }
     )
   }
@@ -271,7 +298,7 @@ resource "aws_launch_template" "node" {
     tags = merge(
       var.tags,
       {
-        Name = "${var.cluster_name}-${each.key}-volume"
+        Name = "${local.cluster_name_with_suffix}-${each.key}-volume"
       }
     )
   }
@@ -279,7 +306,7 @@ resource "aws_launch_template" "node" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-${each.key}-launch-template"
+      Name = "${local.cluster_name_with_suffix}-${each.key}-launch-template"
     }
   )
 
@@ -292,7 +319,7 @@ resource "aws_eks_node_group" "main" {
   for_each = var.node_groups
 
   cluster_name    = aws_eks_cluster.main.name
-  node_group_name = "${var.cluster_name}-${each.key}"
+  node_group_name = "${local.cluster_name_with_suffix}-${each.key}"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = var.private_subnet_ids
 
@@ -333,7 +360,7 @@ resource "aws_eks_node_group" "main" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-${each.key}-node-group"
+      Name = "${local.cluster_name_with_suffix}-${each.key}-node-group"
     }
   )
 
@@ -349,55 +376,54 @@ resource "aws_eks_node_group" "main" {
   }
 }
 locals {
-  default_addons = var.enable_addons ? {
-    vpc-cni = {
-      version                  = "v1.18.1-eksbuild.3"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-    kube-proxy = {
-      version                  = "v1.31.0-eksbuild.5"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-    coredns = {
-      version                  = "v1.11.3-eksbuild.2"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = ""
-    }
-  } : {}
-
-  ebs_csi_addon = var.enable_ebs_csi_driver ? {
-    aws-ebs-csi-driver = {
-      version                  = "v1.37.0-eksbuild.1"
-      resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = var.enable_irsa ? aws_iam_role.ebs_csi[0].arn : ""
-    }
-  } : {}
-
-  all_addons = merge(local.default_addons, local.ebs_csi_addon, var.addons)
+  # Build addons map from the eks_addons variable based on enabled flag
+  enabled_addons = {
+    for addon_key, addon_config in {
+      "vpc-cni" = var.eks_addons.vpc_cni.enabled ? {
+        version           = var.eks_addons.vpc_cni.version
+        resolve_conflicts = var.eks_addons.vpc_cni.resolve_conflicts
+        service_account_role_arn = var.eks_addons.vpc_cni.service_account_role_arn != "" ? var.eks_addons.vpc_cni.service_account_role_arn : null
+      } : null
+      "kube-proxy" = var.eks_addons.kube_proxy.enabled ? {
+        version           = var.eks_addons.kube_proxy.version
+        resolve_conflicts = var.eks_addons.kube_proxy.resolve_conflicts
+        service_account_role_arn = var.eks_addons.kube_proxy.service_account_role_arn != "" ? var.eks_addons.kube_proxy.service_account_role_arn : null
+      } : null
+      "coredns" = var.eks_addons.coredns.enabled ? {
+        version           = var.eks_addons.coredns.version
+        resolve_conflicts = var.eks_addons.coredns.resolve_conflicts
+        service_account_role_arn = var.eks_addons.coredns.service_account_role_arn != "" ? var.eks_addons.coredns.service_account_role_arn : null
+      } : null
+      "aws-ebs-csi-driver" = var.eks_addons.aws_ebs_csi_driver.enabled ? {
+        version           = var.eks_addons.aws_ebs_csi_driver.version
+        resolve_conflicts = var.eks_addons.aws_ebs_csi_driver.resolve_conflicts
+        service_account_role_arn = var.eks_addons.aws_ebs_csi_driver.service_account_role_arn != "" ? var.eks_addons.aws_ebs_csi_driver.service_account_role_arn : (var.enable_irsa && var.eks_addons.aws_ebs_csi_driver.enabled ? aws_iam_role.ebs_csi[0].arn : null)
+      } : null
+    } : addon_key => addon_config
+    if addon_config != null
+  }
 }
 
 resource "aws_eks_addon" "addons" {
-  for_each = local.all_addons
+  for_each = local.enabled_addons
 
   cluster_name                = aws_eks_cluster.main.name
   addon_name                  = each.key
   addon_version               = each.value.version
   resolve_conflicts_on_create = each.value.resolve_conflicts
   resolve_conflicts_on_update = each.value.resolve_conflicts
-  service_account_role_arn    = each.value.service_account_role_arn != "" ? each.value.service_account_role_arn : null
+  service_account_role_arn    = each.value.service_account_role_arn
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-${each.key}"
+      Name = "${local.cluster_name_with_suffix}-${each.key}"
     }
   )
 }
 
 data "aws_iam_policy_document" "ebs_csi_assume_role" {
-  count = var.enable_ebs_csi_driver && var.enable_irsa ? 1 : 0
+  count = var.eks_addons.aws_ebs_csi_driver.enabled && var.enable_irsa ? 1 : 0
 
   statement {
     effect = "Allow"
@@ -424,21 +450,21 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 }
 
 resource "aws_iam_role" "ebs_csi" {
-  count = var.enable_ebs_csi_driver && var.enable_irsa ? 1 : 0
+  count = var.eks_addons.aws_ebs_csi_driver.enabled && var.enable_irsa ? 1 : 0
 
-  name               = "${var.cluster_name}-ebs-csi-driver"
+  name               = "${local.cluster_name_with_suffix}-ebs-csi-driver"
   assume_role_policy = data.aws_iam_policy_document.ebs_csi_assume_role[0].json
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-ebs-csi-driver"
+      Name = "${local.cluster_name_with_suffix}-ebs-csi-driver"
     }
   )
 }
 
 resource "aws_iam_role_policy_attachment" "ebs_csi" {
-  count = var.enable_ebs_csi_driver && var.enable_irsa ? 1 : 0
+  count = var.eks_addons.aws_ebs_csi_driver.enabled && var.enable_irsa ? 1 : 0
 
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.ebs_csi[0].name
@@ -474,13 +500,13 @@ data "aws_iam_policy_document" "cluster_autoscaler_assume_role" {
 resource "aws_iam_role" "cluster_autoscaler" {
   count = var.enable_cluster_autoscaler && var.enable_irsa ? 1 : 0
 
-  name               = "${var.cluster_name}-cluster-autoscaler"
+  name               = "${local.cluster_name_with_suffix}-cluster-autoscaler"
   assume_role_policy = data.aws_iam_policy_document.cluster_autoscaler_assume_role[0].json
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-cluster-autoscaler"
+      Name = "${local.cluster_name_with_suffix}-cluster-autoscaler"
     }
   )
 }
@@ -519,7 +545,7 @@ data "aws_iam_policy_document" "cluster_autoscaler" {
 
     condition {
       test     = "StringEquals"
-      variable = "autoscaling:ResourceTag/k8s.io/cluster-autoscaler/${var.cluster_name}"
+      variable = "autoscaling:ResourceTag/k8s.io/cluster-autoscaler/${local.cluster_name_with_suffix}"
       values   = ["owned"]
     }
   }
@@ -528,14 +554,14 @@ data "aws_iam_policy_document" "cluster_autoscaler" {
 resource "aws_iam_policy" "cluster_autoscaler" {
   count = var.enable_cluster_autoscaler ? 1 : 0
 
-  name        = "${var.cluster_name}-cluster-autoscaler"
+  name        = "${local.cluster_name_with_suffix}-cluster-autoscaler"
   description = "IAM policy for Cluster Autoscaler"
   policy      = data.aws_iam_policy_document.cluster_autoscaler[0].json
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.cluster_name}-cluster-autoscaler"
+      Name = "${local.cluster_name_with_suffix}-cluster-autoscaler"
     }
   )
 }
