@@ -1,66 +1,157 @@
-# Kubernetes Cluster Modules
+# Hera - Kubernetes Cluster Module (Multi-Cloud)
 
-This directory contains cloud-specific Kubernetes cluster modules. Each cloud provider has its own managed Kubernetes service with a consistent interface.
+The `kubernetes-cluster` module defines **managed Kubernetes clusters** across multiple cloud providers.
 
-## Module Interface Contract
+Directory structure:
 
-All Kubernetes cluster modules must expose the same input/output interface to maintain cloud-agnostic composition at the environment level.
-
-### Required Inputs
-- `cluster_name` (string): Name of the Kubernetes cluster
-- `environment` (string): Environment name (dev, staging, prod)
-- `region` (string): Cloud region for deployment
-- `kubernetes_version` (string): Kubernetes version to deploy
-- `vpc_id` (string): VPC/VNet ID from network module
-- `private_subnet_ids` (list): Private subnet IDs for worker nodes
-- `public_subnet_ids` (list): Public subnet IDs for load balancers
-- `node_groups` (map): Configuration for node groups/pools
-- `enable_private_endpoint` (bool): Enable private cluster endpoint
-- `enable_public_endpoint` (bool): Enable public cluster endpoint
-- `authorized_networks` (list): CIDRs allowed to access public endpoint
-- `tags` (map): Common tags to apply to all resources
-
-### Required Outputs
-- `cluster_id`: Cluster identifier
-- `cluster_endpoint`: Kubernetes API endpoint
-- `cluster_ca_certificate`: Cluster CA certificate (base64 encoded)
-- `cluster_security_group_id`: Security group ID for cluster
-- `node_security_group_id`: Security group ID for nodes
-- `kubeconfig`: Kubeconfig content for cluster access
-- `oidc_provider_arn`: OIDC provider ARN (for IRSA/workload identity)
-
-## Node Group Configuration Schema
-
-Each cloud implementation should support:
-```hcl
-node_groups = {
-  "group-name" = {
-    min_size       = 1
-    max_size       = 10
-    desired_size   = 3
-    instance_types = ["t3.medium"]
-    disk_size      = 100
-    labels         = {}
-    taints         = []
-  }
-}
+```
+kubernetes-cluster/
+├── aws-eks/
+├── azure-aks/   (planned)
+└── gcp-gke/     (planned)
 ```
 
-## Implementation Guidelines
+Each provider-specific submodule is responsible for:
 
-1. **Managed Services**: Use managed Kubernetes services (EKS, AKS, GKE)
-2. **Private Clusters**: Default to private endpoints for security
-3. **RBAC**: Enable RBAC by default
-4. **Pod Security**: Enable pod security standards
-5. **Logging**: Enable control plane logging
-6. **Monitoring**: Enable metrics and monitoring
-7. **Auto-scaling**: Support cluster autoscaler
-8. **Workload Identity**: Enable IRSA/Workload Identity for pod IAM
-9. **Network Policies**: Enable network policy support
-10. **Add-ons**: Include essential add-ons (CoreDNS, kube-proxy, etc.)
+- Creating the managed control plane (EKS/AKS/GKE or equivalent)
+- Creating or wiring node pools / node groups
+- Wiring IAM / RBAC / IRSA-like constructs
+- Enabling logging and core addons
 
-## Cloud Implementations
+This module sits **on top of the network layer** and **depends** on:
 
-- **aws-eks/**: Amazon Elastic Kubernetes Service
-- **azure-aks/**: Azure Kubernetes Service
-- **gcp-gke/**: Google Kubernetes Engine
+- The `bootstrap` module (Terraform backend)
+- The `network` module for each cloud (VPC/VNet, subnets, NAT, endpoints)
+
+---
+
+## Purpose
+
+The Kubernetes cluster layer is where **compute capacity** and **scheduling logic** live.
+
+It is also:
+
+- The **largest cost driver** (EC2/VM nodes)
+- The primary reliability surface (HA, multi-AZ, autoscaling)
+- The foundation for application workloads and platform services
+
+Because of this, it is considered **ephemeral** relative to the bootstrap layer:
+- You can destroy **clusters** (especially dev/stage) while keeping:
+  - Terraform backend
+  - Networking
+  - Shared infra (databases, object storage, etc.) intact.
+
+---
+
+## Provider-Specific Implementations
+
+### AWS - `aws-eks`
+
+Implements:
+
+- EKS control plane
+- Cluster IAM roles
+- Node group IAM roles
+- Security groups (cluster and nodes)
+- Managed node groups with launch templates
+- Core EKS addons (vpc-cni, kube-proxy, coredns)
+- Optional:
+  - IRSA (OIDC provider)
+  - EBS CSI driver
+  - Cluster Autoscaler IAM
+
+This is the current reference implementation. Azure and GCP modules should match its capabilities where possible.
+
+---
+
+### Azure - `azure-eks` (Planned)
+
+Will host an AKS-style implementation:
+
+- AKS cluster
+- Node pools
+- Managed identities / AAD integration
+- Logging integration (Azure Monitor)
+- CSI drivers and autoscaling setup
+
+### GCP - `gcp-gke` (Planned)
+
+Will host a GKE-based implementation:
+
+- GKE cluster
+- Node pools
+- Workload Identity (IRSA equivalent)
+- Cloud Logging integration
+- CSI drivers and autoscaling setup
+
+---
+
+## Cost Positioning
+
+Cluster modules are **more expensive** than bootstrap and network, because:
+
+- You pay for:
+  - Managed control plane (EKS/AKS/GKE)
+  - Worker nodes / node pools
+  - Cluster logging
+  - Storage addons
+
+Typical per-environment approximate ranges:
+
+| Layer        | Dev Cost (per month) | Prod Cost (per month) |
+|-------------|----------------------|------------------------|
+| Bootstrap   | $0.50 - $3           | $0.50 - $3            |
+| Network     | $40 - $80            | $120 - $180           |
+| Cluster     | $80 - $300+          | $300 - $1000+         |
+
+Numbers depend heavily on:
+- Node type and count
+- Workload density
+- Logging and addons
+- Spot / preemptible vs on-demand
+
+---
+
+## Design Goals
+
+- **Cloud-agnostic**: same mental model on AWS/Azure/GCP
+- **Production-ready**: security, logging, addons, encryption
+- **Ephemeral-friendly**: safe to recreate dev/staging clusters
+- **Cost-aware**: minimal defaults for dev, scalable in prod
+- **Composable**: clean interface with the network + app layers
+
+---
+
+## Recommended Strategy
+
+### Dev / Early Stage
+
+- Single small cluster per environment (or even a shared dev cluster)
+- Minimal node groups (1-2 nodes, small instances)
+- SPOT or preemptible instances where tolerable
+- Lower log retention
+- Optionally destroy nightly or on weekends
+
+### Production
+
+- Separate clusters for production, staging, and maybe perf-test
+- Multiple node groups/pools:
+  - System / critical workloads on on-demand
+  - Batch / non-critical on spot/preemptible
+- Control plane logs enabled
+- IRSA / Workload Identity used everywhere
+- KMS / Key Vault / CMEK-based encryption where applicable
+- Autoscaling configured and tested (HPA, Cluster Autoscaler, etc.)
+
+---
+
+## Dependencies and Ordering
+
+1. **Bootstrap** (per cloud)
+2. **Network** (per cloud)
+3. **Kubernetes Cluster** (this module)
+4. **Platform / App layers** (ingress, monitoring, workloads, CI/CD agents, etc.)
+
+Destroy order in reverse, typically:
+- Apps → Cluster → Network → (Bootstrap stays)
+

@@ -1,4 +1,3 @@
-# CloudWatch Log Group for EKS Control Plane Logs
 resource "aws_cloudwatch_log_group" "eks_cluster" {
   name              = "/aws/eks/${var.cluster_name}/cluster"
   retention_in_days = var.cluster_log_retention_days
@@ -11,7 +10,6 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
   )
 }
 
-# EKS Cluster IAM Role
 resource "aws_iam_role" "cluster" {
   name = "${var.cluster_name}-eks-cluster-role"
 
@@ -44,7 +42,6 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSVPCResourceControlle
   role       = aws_iam_role.cluster.name
 }
 
-# EKS Cluster Security Group
 resource "aws_security_group" "cluster" {
   name_prefix = "${var.cluster_name}-eks-cluster-"
   description = "Security group for EKS cluster control plane"
@@ -72,7 +69,6 @@ resource "aws_security_group_rule" "cluster_egress" {
   description       = "Allow all outbound traffic"
 }
 
-# EKS Cluster
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   role_arn = aws_iam_role.cluster.arn
@@ -112,7 +108,6 @@ resource "aws_eks_cluster" "main" {
   )
 }
 
-# OIDC Provider for IRSA
 data "tls_certificate" "cluster" {
   count = var.enable_irsa ? 1 : 0
   url   = aws_eks_cluster.main.identity[0].oidc[0].issuer
@@ -132,8 +127,6 @@ resource "aws_iam_openid_connect_provider" "cluster" {
     }
   )
 }
-
-# Node Group IAM Role
 resource "aws_iam_role" "node" {
   name = "${var.cluster_name}-eks-node-role"
 
@@ -176,7 +169,6 @@ resource "aws_iam_role_policy_attachment" "node_AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.node.name
 }
 
-# Node Security Group
 resource "aws_security_group" "node" {
   name_prefix = "${var.cluster_name}-eks-node-"
   description = "Security group for EKS worker nodes"
@@ -235,7 +227,6 @@ resource "aws_security_group_rule" "cluster_ingress_node_https" {
   description              = "Allow pods to communicate with the cluster API Server"
 }
 
-# Launch Template for Node Groups
 resource "aws_launch_template" "node" {
   for_each = var.node_groups
 
@@ -297,7 +288,6 @@ resource "aws_launch_template" "node" {
   }
 }
 
-# EKS Node Groups
 resource "aws_eks_node_group" "main" {
   for_each = var.node_groups
 
@@ -358,8 +348,6 @@ resource "aws_eks_node_group" "main" {
     ignore_changes        = [scaling_config[0].desired_size]
   }
 }
-
-# EKS Addons
 locals {
   default_addons = var.enable_addons ? {
     vpc-cni = {
@@ -408,7 +396,6 @@ resource "aws_eks_addon" "addons" {
   )
 }
 
-# IAM Role for EBS CSI Driver
 data "aws_iam_policy_document" "ebs_csi_assume_role" {
   count = var.enable_ebs_csi_driver && var.enable_irsa ? 1 : 0
 
@@ -457,7 +444,6 @@ resource "aws_iam_role_policy_attachment" "ebs_csi" {
   role       = aws_iam_role.ebs_csi[0].name
 }
 
-# IAM Policy for Cluster Autoscaler
 data "aws_iam_policy_document" "cluster_autoscaler_assume_role" {
   count = var.enable_cluster_autoscaler && var.enable_irsa ? 1 : 0
 

@@ -218,5 +218,25 @@ variable "enable_cluster_autoscaler" {
 variable "cluster_log_retention_days" {
   description = "CloudWatch log retention in days for EKS control plane logs"
   type        = number
-  default     = 7
+  default     = 1
+}
+
+variable "enable_addons" {
+  type    = bool
+  default = false
+}
+
+variable "enable_irsa" {
+  type    = bool
+  default = false
+}
+
+variable "enable_ebs_csi_driver" {
+  type    = bool
+  default = false
+}
+
+variable "addons" {
+  type    = map(any)
+  default = {}
 }
