@@ -1,3 +1,5 @@
+# Global variables shared by network + eks
+
 variable "region" {
   description = "AWS region for this environment"
   type        = string
@@ -20,38 +22,87 @@ variable "environment" {
   default     = "dev"
 }
 
+# Network variables
+
+variable "vpc_cidr" {
+  type = string
+}
+
+variable "availability_zones" {
+  type = list(string)
+}
+
+variable "private_subnet_cidrs" {
+  type = list(string)
+}
+
+variable "public_subnet_cidrs" {
+  type = list(string)
+}
+
+variable "enable_nat_gateway" {
+  type    = bool
+  default = true
+}
+
+variable "single_nat_gateway" {
+  type    = bool
+  default = true
+}
+
+variable "enable_vpc_endpoints" {
+  type    = bool
+  default = false
+}
+
+variable "vpc_endpoints" {
+  type    = list(string)
+  default = []
+}
+
+variable "enable_flow_logs" {
+  type    = bool
+  default = false
+}
+
+variable "flow_logs_retention_days" {
+  type    = number
+  default = 1
+}
+
+variable "flow_logs_traffic_type" {
+  type    = string
+  default = "ALL"
+}
+
+# EKS variables
+
 variable "cluster_name" {
-  description = "EKS cluster name"
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "kubernetes_version" {
-  description = "Kubernetes version for the EKS cluster"
-  type        = string
-  default     = "1.32"
+  type    = string
+  default = "1.32"
 }
 
 variable "enable_private_endpoint" {
-  description = "Enable private EKS API endpoint"
-  type        = bool
-  default     = true
+  type    = bool
+  default = true
 }
 
 variable "enable_public_endpoint" {
-  description = "Enable public EKS API endpoint"
-  type        = bool
-  default     = true
+  type    = bool
+  default = true
 }
 
 variable "authorized_networks" {
-  description = "CIDRs allowed for public API access"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
+  type    = list(string)
+  default = ["0.0.0.0/0"]
 }
 
 variable "node_groups" {
-  description = "EKS node group configurations"
   type = map(object({
     desired_size   = number
     min_size       = number
@@ -70,31 +121,26 @@ variable "node_groups" {
 }
 
 variable "enable_cluster_autoscaler" {
-  description = "Enable IAM permissions for Cluster Autoscaler"
-  type        = bool
-  default     = false
+  type    = bool
+  default = false
 }
 
 variable "cluster_log_retention_days" {
-  description = "Retention for EKS control plane logs"
-  type        = number
-  default     = 1
+  type    = number
+  default = 1
 }
 
 variable "enable_irsa" {
-  description = "Enable IAM Roles for Service Accounts"
-  type        = bool
-  default     = true
+  type    = bool
+  default = true
 }
 
 variable "use_random_suffix" {
-  description = "Append random suffix to avoid naming collisions"
-  type        = bool
-  default     = true
+  type    = bool
+  default = true
 }
 
 variable "eks_addons" {
-  description = "EKS Addons configuration"
   type = object({
     vpc_cni = object({
       enabled                  = bool
