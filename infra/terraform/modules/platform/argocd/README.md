@@ -44,7 +44,6 @@ ArgoCD works with ANY Git backend:
 - GitHub
 - GitLab
 - Bitbucket
-- Gitea
 - Any self-hosted Git
 
 ## Usage
@@ -103,58 +102,6 @@ module "argocd" {
   git_repository_username = "bitbucket-user"
   git_repository_password = var.bitbucket_password
 }
-
-## Using ArgoCD with In-Cluster Gitea (Recommended for Dev)
-
-When using Gitea deployed inside the cluster, Terraform can now completely automate GitOps setup through the **gitea-repository** module.  
-No manual repository creation is needed.
-
-### Step 1: Deploy Gitea
-
-module "gitea" {
-  source          = "../../../modules/platform/gitea"
-  cluster_name     = var.cluster_name
-  namespace        = "git"
-  create_namespace = true
-  admin_username   = var.gitea_admin_username
-  admin_email      = var.gitea_admin_email
-}
-
-### Step 2: Automatically create GitOps repo in Gitea
-
-module "gitops_repository" {
-  source = "../../../modules/platform/gitea-repository"
-
-  name           = "gitops-repo"
-  description    = "GitOps root repository"
-  private        = true
-  readme_content = "# GitOps Repository\nManaged by Terraform"
-}
-
-### Step 3: Deploy ArgoCD connected to the auto-created repository
-
-module "argocd" {
-  source          = "../../../modules/platform/argocd"
-  cluster_name     = var.cluster_name
-  namespace        = "argocd"
-  create_namespace = true
-
-  git_repository_url      = module.gitops_repository.clone_url
-  git_repository_username = module.gitea.admin_username
-  git_repository_password = module.gitea.admin_password
-
-  tags = local.tags
-
-  depends_on = [
-    module.gitea,
-    module.gitops_repository
-  ]
-}
-
-Notes:
-- No manual action in Gitea is required.
-- Gitea is accessible from ArgoCD using Kubernetes DNS:
-  http://gitea-http.git.svc.cluster.local:3000
 
 ## Production HA Configuration
 

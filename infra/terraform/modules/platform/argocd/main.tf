@@ -1,39 +1,43 @@
+locals {
+  admin_password = var.admin_password != "" ? var.admin_password : random_password.admin.result
+}
+
+# -----------------------------
+# Random admin password if not provided
+# -----------------------------
+
 resource "random_password" "admin" {
-  count   = var.admin_password == "" ? 1 : 0
   length  = 16
   special = true
 }
 
-locals {
-  admin_password = var.admin_password != "" ? var.admin_password : random_password.admin[0].result
-}
+# -----------------------------
+# Namespace (optional)
+# -----------------------------
 
 resource "kubernetes_namespace" "argocd" {
   count = var.create_namespace ? 1 : 0
 
   metadata {
-    name = var.namespace
-
-    labels = merge(
-      var.tags,
-      {
-        name = var.namespace
-      }
-    )
+    name   = var.namespace
+    labels = var.tags
   }
 }
 
+# -----------------------------
+# Install ArgoCD via Helm
+# -----------------------------
+
 resource "helm_release" "argocd" {
   name       = "argocd"
+  namespace  = var.namespace
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
   version    = var.chart_version
-  namespace  = var.namespace
 
-  depends_on = concat(
-    [kubernetes_namespace.argocd],
-    var._platform_depends_on
-  )
+  depends_on = [
+    kubernetes_namespace.argocd
+  ]
 
   values = var.values != "" ? [var.values] : [
     yamlencode({
@@ -56,9 +60,14 @@ resource "helm_release" "argocd" {
     })
   ]
 
-  wait    = true
-  timeout = 600
+  wait          = true
+  wait_for_jobs = true
+  timeout       = 600
 }
+
+# -----------------------------
+# Override initial admin password
+# -----------------------------
 
 resource "kubernetes_secret" "admin_password" {
   metadata {
@@ -73,20 +82,20 @@ resource "kubernetes_secret" "admin_password" {
     password = local.admin_password
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [
+    helm_release.argocd
+  ]
 
   lifecycle {
     ignore_changes = [data]
   }
 }
 
-resource "kubernetes_secret" "git_repository" {
-  count = (
-    var.git_repository_url != "" &&
-    var.git_repository_username != "" &&
-    var.git_repository_password != ""
-  ) ? 1 : 0
+# -----------------------------
+# Git Credentials Secret for ArgoCD
+# -----------------------------
 
+resource "kubernetes_secret" "git_credentials" {
   metadata {
     name      = "git-repository-credentials"
     namespace = var.namespace
@@ -103,7 +112,6 @@ resource "kubernetes_secret" "git_repository" {
   }
 
   depends_on = [
-    helm_release.argocd,
-    kubernetes_secret.admin_password
+    helm_release.argocd
   ]
 }

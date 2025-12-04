@@ -1,16 +1,20 @@
 output "namespace" {
-  value = var.namespace
+  description = "Namespace where ArgoCD is installed"
+  value       = var.namespace
 }
 
 output "admin_password" {
-  value     = local.admin_password
-  sensitive = true
+  description = "ArgoCD admin password"
+  value       = local.admin_password
+  sensitive   = true
 }
 
 output "server_service" {
-  value = "argocd-server"
+  description = "ArgoCD server service name"
+  value       = "argocd-server"
 }
 
 output "kubectl_port_forward" {
-  value = "kubectl port-forward -n ${var.namespace} svc/argocd-server 8080:443"
+  description = "Port-forward command for ArgoCD UI"
+  value       = "kubectl port-forward -n ${var.namespace} svc/argocd-server 8080:443"
 }
