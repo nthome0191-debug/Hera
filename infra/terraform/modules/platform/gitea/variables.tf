@@ -1,9 +1,3 @@
-
-variable "cluster_name" {
-  description = "Name of the Kubernetes cluster"
-  type        = string
-}
-
 variable "namespace" {
   description = "Kubernetes namespace for Gitea"
   type        = string
@@ -21,6 +15,7 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
 variable "chart_version" {
   description = "Gitea Helm chart version"
   type        = string

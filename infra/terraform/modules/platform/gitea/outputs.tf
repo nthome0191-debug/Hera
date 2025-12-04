@@ -1,4 +1,3 @@
-
 output "namespace" {
   description = "Kubernetes namespace where Gitea is deployed"
   value       = var.namespace

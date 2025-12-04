@@ -111,3 +111,9 @@ variable "archived" {
   type        = bool
   default     = false
 }
+
+variable "_gitea_depends_on" {
+  description = "Internal dependency injection to ensure repo creation waits for Gitea deployment"
+  type        = list(any)
+  default     = []
+}

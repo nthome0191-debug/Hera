@@ -1,4 +1,3 @@
-
 resource "random_password" "admin" {
   count   = var.admin_password == "" ? 1 : 0
   length  = 16
@@ -14,6 +13,7 @@ resource "kubernetes_namespace" "argocd" {
 
   metadata {
     name = var.namespace
+
     labels = merge(
       var.tags,
       {
@@ -30,9 +30,10 @@ resource "helm_release" "argocd" {
   version    = var.chart_version
   namespace  = var.namespace
 
-  depends_on = [
-    kubernetes_namespace.argocd
-  ]
+  depends_on = concat(
+    [kubernetes_namespace.argocd],
+    var._platform_depends_on
+  )
 
   values = var.values != "" ? [var.values] : [
     yamlencode({
@@ -72,16 +73,19 @@ resource "kubernetes_secret" "admin_password" {
     password = local.admin_password
   }
 
-  depends_on = [kubernetes_namespace.argocd]
+  depends_on = [helm_release.argocd]
 
   lifecycle {
     ignore_changes = [data]
   }
 }
 
-
 resource "kubernetes_secret" "git_repository" {
-  count = var.git_repository_url != "" && var.git_repository_username != "" && var.git_repository_password != "" ? 1 : 0
+  count = (
+    var.git_repository_url != "" &&
+    var.git_repository_username != "" &&
+    var.git_repository_password != ""
+  ) ? 1 : 0
 
   metadata {
     name      = "git-repository-credentials"
@@ -98,5 +102,8 @@ resource "kubernetes_secret" "git_repository" {
     password = var.git_repository_password
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [
+    helm_release.argocd,
+    kubernetes_secret.admin_password
+  ]
 }
