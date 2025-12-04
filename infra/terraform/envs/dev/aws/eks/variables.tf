@@ -1,11 +1,3 @@
-# Development Environment Variables - AWS
-# These are variable declarations, actual values go in terraform.tfvars
-
-
-# ============================================
-# Core Environment Variables
-# ============================================
-
 variable "region" {
   description = "AWS region for this environment"
   type        = string
@@ -27,78 +19,6 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
-
-
-# ============================================
-# Network Variables
-# ============================================
-
-variable "vpc_cidr" {
-  description = "VPC CIDR block"
-  type        = string
-}
-
-variable "availability_zones" {
-  description = "List of availability zones"
-  type        = list(string)
-}
-
-variable "private_subnet_cidrs" {
-  description = "Private subnet CIDR blocks"
-  type        = list(string)
-}
-
-variable "public_subnet_cidrs" {
-  description = "Public subnet CIDR blocks"
-  type        = list(string)
-}
-
-variable "enable_nat_gateway" {
-  description = "Enable NAT gateway"
-  type        = bool
-  default     = true
-}
-
-variable "single_nat_gateway" {
-  description = "Use single NAT gateway (cost optimized)"
-  type        = bool
-  default     = true
-}
-
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints"
-  type        = bool
-  default     = false
-}
-
-variable "vpc_endpoints" {
-  description = "List of VPC endpoints (s3, ecr_api, ecr_dkr, sts, logs, etc)"
-  type        = list(string)
-  default     = []
-}
-
-variable "enable_flow_logs" {
-  description = "Enable VPC Flow Logs"
-  type        = bool
-  default     = false
-}
-
-variable "flow_logs_retention_days" {
-  description = "Retention of flow logs in CloudWatch"
-  type        = number
-  default     = 1
-}
-
-variable "flow_logs_traffic_type" {
-  description = "Traffic type for VPC Flow Logs"
-  type        = string
-  default     = "ALL"
-}
-
-
-# ============================================
-# EKS Cluster Variables
-# ============================================
 
 variable "cluster_name" {
   description = "EKS cluster name"
@@ -202,50 +122,4 @@ variable "eks_addons" {
     })
   })
   default = {}
-}
-
-
-# ============================================
-# Platform - Gitea Variables
-# ============================================
-
-variable "gitea_admin_username" {
-  description = "Admin username for the Gitea installation"
-  type        = string
-  default     = "gitea-admin"
-}
-
-variable "gitea_admin_email" {
-  description = "Admin email for Gitea"
-  type        = string
-  default     = "admin@local"
-}
-
-variable "gitea_admin_password" {
-  description = "Optional preset password for Gitea admin (random if empty)"
-  type        = string
-  default     = ""
-}
-
-
-# ============================================
-# Platform - ArgoCD GitOps (Optional)
-# ============================================
-
-variable "argocd_git_repository_url" {
-  description = "Optional Git repository URL for ArgoCD integration"
-  type        = string
-  default     = ""
-}
-
-variable "argocd_git_repository_username" {
-  description = "Username for ArgoCD GitOps repo"
-  type        = string
-  default     = ""
-}
-
-variable "argocd_git_repository_password" {
-  description = "Password/token for ArgoCD GitOps repo"
-  type        = string
-  default     = ""
 }
