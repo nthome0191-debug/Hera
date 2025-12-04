@@ -291,13 +291,6 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.tags["Project"]}-${var.tags["Environment"]}"
   retention_in_days = var.flow_logs_retention_days
 
-  lifecycle {
-    ignore_changes = [
-      name,
-      retention_in_days
-    ]
-  }
-
   tags = merge(
     var.tags,
     {
@@ -305,7 +298,6 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
     }
   )
 }
-
 
 resource "aws_iam_role" "flow_logs" {
   count = var.enable_flow_logs ? 1 : 0
