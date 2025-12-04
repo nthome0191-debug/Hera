@@ -1,22 +1,32 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"context"
 
-	tf "hera/pkg/platform/terraform"
+	tfrunner "hera/pkg/platform/terraform"
+
+	"github.com/spf13/cobra"
 )
 
 var planCmd = &cobra.Command{
-	Use:   "plan <provider> <env> [stacks...]",
-	Short: "Run terraform plan for a given provider/env, optionally targeting specific stacks",
-	Args:  cobra.MinimumNArgs(2),
+	Use:   "plan [env] [stack] [cloud]",
+	Short: "Plan a Terraform stack",
+	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		provider := args[0]
-		env := args[1]
-		stacks := []string{}
-		if len(args) > 2 {
-			stacks = args[2:]
+		t, err := resolveTarget(cmd, args)
+		if err != nil {
+			printError(err.Error())
+			return err
 		}
-		return runOperation(tf.OpPlan, provider, env, stacks)
+		printBanner("Plan")
+		printContext(t.Env, t.Stack, t.Cloud, t.Path)
+		printBanner("Running terraform plan")
+		err = tfrunner.Run(context.Background(), t.Path, tfrunner.ActionPlan)
+		if err != nil {
+			printError(err.Error())
+			return err
+		}
+		printSuccess("Plan completed")
+		return nil
 	},
 }

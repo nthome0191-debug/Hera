@@ -1,22 +1,32 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"context"
 
-	tf "hera/pkg/platform/terraform"
+	tfrunner "hera/pkg/platform/terraform"
+
+	"github.com/spf13/cobra"
 )
 
 var applyCmd = &cobra.Command{
-	Use:   "apply <provider> <env> [stacks...]",
-	Short: "Run terraform apply for a given provider/env, optionally targeting specific stacks",
-	Args:  cobra.MinimumNArgs(2),
+	Use:   "apply [env] [stack] [cloud]",
+	Short: "Apply a Terraform stack",
+	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		provider := args[0]
-		env := args[1]
-		stacks := []string{}
-		if len(args) > 2 {
-			stacks = args[2:]
+		t, err := resolveTarget(cmd, args)
+		if err != nil {
+			printError(err.Error())
+			return err
 		}
-		return runOperation(tf.OpApply, provider, env, stacks)
+		printBanner("Apply")
+		printContext(t.Env, t.Stack, t.Cloud, t.Path)
+		printBanner("Running terraform apply -auto-approve")
+		err = tfrunner.Run(context.Background(), t.Path, tfrunner.ActionApply)
+		if err != nil {
+			printError(err.Error())
+			return err
+		}
+		printSuccess("Apply completed successfully")
+		return nil
 	},
 }

@@ -167,5 +167,30 @@ variable "eks_addons" {
       service_account_role_arn = string
     })
   })
-  default = {}
+  default = {
+    vpc_cni = {
+      enabled                  = true
+      version                  = "latest"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    kube_proxy = {
+      enabled                  = true
+      version                  = "latest"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    coredns = {
+      enabled                  = true
+      version                  = "latest"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+    aws_ebs_csi_driver = {
+      enabled                  = true
+      version                  = "latest"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = ""
+    }
+  }
 }

@@ -7,7 +7,7 @@ locals {
 }
 
 module "network" {
-  source = "../../../modules/network/aws"
+  source = "../../../../modules/network/aws"
 
   region                   = var.region
   vpc_cidr                 = var.vpc_cidr
@@ -26,7 +26,7 @@ module "network" {
 }
 
 module "eks_cluster" {
-  source = "../../../modules/kubernetes-cluster/aws-eks"
+  source = "../../../../modules/kubernetes-cluster/aws-eks"
 
   cluster_name               = var.cluster_name
   environment                = var.environment

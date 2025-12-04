@@ -291,6 +291,11 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
   name              = "/aws/vpc/flow-logs/${var.tags["Project"]}-${var.tags["Environment"]}"
   retention_in_days = var.flow_logs_retention_days
 
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [name]
+  }
+
   tags = merge(
     var.tags,
     {

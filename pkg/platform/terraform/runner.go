@@ -1,122 +1,45 @@
 package terraform
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
-type Operation string
+type Action string
 
 const (
-	OpPlan    Operation = "plan"
-	OpApply   Operation = "apply"
-	OpDestroy Operation = "destroy"
-	OpOutput  Operation = "output"
+	ActionApply   Action = "apply"
+	ActionPlan    Action = "plan"
+	ActionDestroy Action = "destroy"
+	ActionOutput  Action = "output"
 )
 
-type Options struct {
-	RootDir       string
-	AutoApprove   bool
-	VarFile       string
-	BackendConfig []string
-	Targets       []string
-}
-
-func Run(op Operation, provider, env string, opts Options) error {
-	dir, err := resolvePath(opts.RootDir, provider, env)
-	if err != nil {
+func Run(ctx context.Context, dir string, action Action) error {
+	initCmd := exec.CommandContext(ctx, "terraform", "init", "-upgrade")
+	initCmd.Stdout = os.Stdout
+	initCmd.Stderr = os.Stderr
+	initCmd.Stdin = os.Stdin
+	initCmd.Dir = dir
+	if err := initCmd.Run(); err != nil {
 		return err
 	}
 
-	if err := terraformInit(dir, opts); err != nil {
-		return fmt.Errorf("terraform init failed: %w", err)
+	var args []string
+	if action == ActionApply {
+		args = []string{"apply", "-auto-approve"}
+	} else if action == ActionDestroy {
+		args = []string{"destroy", "-auto-approve"}
+	} else if action == ActionPlan {
+		args = []string{"plan"}
+	} else if action == ActionOutput {
+		args = []string{"output"}
 	}
 
-	switch op {
-	case OpPlan:
-		return terraformPlan(dir, opts)
-	case OpApply:
-		return terraformApply(dir, opts)
-	case OpDestroy:
-		return terraformDestroy(dir, opts)
-	case OpOutput:
-		return terraformOutput(dir, opts)
-	default:
-		return fmt.Errorf("unsupported operation: %s", op)
-	}
-}
-
-func resolvePath(rootDir, provider, env string) (string, error) {
-	base := filepath.Join(rootDir, "infra", "terraform", "envs", env, provider)
-	info, err := os.Stat(base)
-	if err != nil {
-		return "", fmt.Errorf("failed to resolve path %s: %w", base, err)
-	}
-	if !info.IsDir() {
-		return "", fmt.Errorf("path is not a directory: %s", base)
-	}
-	return base, nil
-}
-
-func terraformInit(dir string, opts Options) error {
-	args := []string{"init", "-input=false"}
-	for _, b := range opts.BackendConfig {
-		args = append(args, "-backend-config", b)
-	}
-	return runTerraform(dir, args...)
-}
-
-func terraformPlan(dir string, opts Options) error {
-	args := []string{"plan"}
-	if opts.VarFile != "" {
-		args = append(args, "-var-file", opts.VarFile)
-	}
-	for _, t := range opts.Targets {
-		args = append(args, "-target", t)
-	}
-	return runTerraform(dir, args...)
-}
-
-func terraformApply(dir string, opts Options) error {
-	args := []string{"apply"}
-	if opts.AutoApprove {
-		args = append(args, "-auto-approve")
-	}
-	if opts.VarFile != "" {
-		args = append(args, "-var-file", opts.VarFile)
-	}
-	for _, t := range opts.Targets {
-		args = append(args, "-target", t)
-	}
-	return runTerraform(dir, args...)
-}
-
-func terraformDestroy(dir string, opts Options) error {
-	args := []string{"destroy"}
-	if opts.AutoApprove {
-		args = append(args, "-auto-approve")
-	}
-	if opts.VarFile != "" {
-		args = append(args, "-var-file", opts.VarFile)
-	}
-	for _, t := range opts.Targets {
-		args = append(args, "-target", t)
-	}
-	return runTerraform(dir, args...)
-}
-
-func terraformOutput(dir string, opts Options) error {
-	args := []string{"output"}
-	return runTerraform(dir, args...)
-}
-
-func runTerraform(dir string, args ...string) error {
-	cmd := exec.Command("terraform", args...)
-	cmd.Dir = dir
+	cmd := exec.CommandContext(ctx, "terraform", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+	cmd.Dir = dir
 	return cmd.Run()
 }

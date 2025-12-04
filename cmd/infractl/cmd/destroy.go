@@ -1,22 +1,32 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"context"
 
-	tf "hera/pkg/platform/terraform"
+	tfrunner "hera/pkg/platform/terraform"
+
+	"github.com/spf13/cobra"
 )
 
 var destroyCmd = &cobra.Command{
-	Use:   "destroy <provider> <env> [stacks...]",
-	Short: "Run terraform destroy for a given provider/env, optionally targeting specific stacks",
-	Args:  cobra.MinimumNArgs(2),
+	Use:   "destroy [env] [stack] [cloud]",
+	Short: "Destroy a Terraform stack",
+	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		provider := args[0]
-		env := args[1]
-		stacks := []string{}
-		if len(args) > 2 {
-			stacks = args[2:]
+		t, err := resolveTarget(cmd, args)
+		if err != nil {
+			printError(err.Error())
+			return err
 		}
-		return runOperation(tf.OpDestroy, provider, env, stacks)
+		printBanner("Destroy")
+		printContext(t.Env, t.Stack, t.Cloud, t.Path)
+		printBanner("Running terraform destroy -auto-approve")
+		err = tfrunner.Run(context.Background(), t.Path, tfrunner.ActionDestroy)
+		if err != nil {
+			printError(err.Error())
+			return err
+		}
+		printSuccess("Destroy completed successfully")
+		return nil
 	},
 }
