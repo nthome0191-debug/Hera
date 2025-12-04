@@ -129,3 +129,13 @@ output "eks_addons" {
   description = "Map of EKS addons and their versions"
   value       = { for k, v in aws_eks_addon.addons : k => v.addon_version }
 }
+
+output "kubeconfig_path" {
+  description = "Path to the kubeconfig file (AWS EKS writes to default kubectl config)"
+  value       = pathexpand("~/.kube/config")
+}
+
+output "kubeconfig_context" {
+  description = "Kubeconfig context name to use for this cluster"
+  value       = var.kubeconfig_context_name != "" ? var.kubeconfig_context_name : "arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${local.cluster_name_with_suffix}"
+}

@@ -586,11 +586,10 @@ resource "null_resource" "update_kubeconfig" {
 
   provisioner "local-exec" {
     command = <<EOT
-aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.main.name}
-
-if [ "${var.kubeconfig_context_name}" != "" ]; then
-  kubectl config rename-context arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${aws_eks_cluster.main.name} ${var.kubeconfig_context_name} || true
-fi
+aws eks update-kubeconfig \
+  --region ${var.region} \
+  --name ${aws_eks_cluster.main.name} \
+  ${var.kubeconfig_context_name != "" ? "--alias ${var.kubeconfig_context_name}" : ""}
 EOT
   }
 }

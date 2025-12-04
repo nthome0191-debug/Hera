@@ -31,6 +31,11 @@ resource "helm_release" "argocd" {
         install = true
         keep    = true
       }
+      configs = {
+        secret = {
+          argocdServerAdminPassword = bcrypt(local.admin_password)
+        }
+      }
       server = {
         replicas = 1
       }
@@ -49,28 +54,6 @@ resource "helm_release" "argocd" {
   wait          = true
   wait_for_jobs = true
   timeout       = 600
-}
-
-resource "kubernetes_secret" "admin_password" {
-  metadata {
-    name      = "argocd-initial-admin-secret"
-    namespace = var.namespace
-    labels = {
-      "app.kubernetes.io/part-of" = "argocd"
-    }
-  }
-
-  data = {
-    password = local.admin_password
-  }
-
-  depends_on = [
-    helm_release.argocd
-  ]
-
-  lifecycle {
-    ignore_changes = [data]
-  }
 }
 
 resource "kubernetes_secret" "git_credentials" {

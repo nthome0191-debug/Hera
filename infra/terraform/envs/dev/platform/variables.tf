@@ -18,8 +18,14 @@ variable "tags" {
 ##############################
 
 variable "kubeconfig_path" {
-  description = "Path to kubeconfig file for the dev cluster"
+  description = "Path to kubeconfig file for the cluster"
   type        = string
+}
+
+variable "kubeconfig_context" {
+  description = "Kubeconfig context name to use (optional, defaults to current context)"
+  type        = string
+  default     = ""
 }
 
 ##############################

@@ -96,3 +96,13 @@ output "ebs_csi_driver_role_arn" {
 output "cluster_autoscaler_role_arn" {
   value = module.eks_cluster.cluster_autoscaler_role_arn
 }
+
+output "kubeconfig_path" {
+  description = "Path to kubeconfig file for kubectl/platform access"
+  value       = module.eks_cluster.kubeconfig_path
+}
+
+output "kubeconfig_context" {
+  description = "Kubeconfig context name for this cluster"
+  value       = module.eks_cluster.kubeconfig_context
+}
