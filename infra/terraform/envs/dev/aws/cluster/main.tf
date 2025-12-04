@@ -45,4 +45,8 @@ module "eks_cluster" {
   use_random_suffix          = var.use_random_suffix
   eks_addons                 = var.eks_addons
   tags                       = local.tags
+
+  depends_on = [
+    module.network
+  ]
 }

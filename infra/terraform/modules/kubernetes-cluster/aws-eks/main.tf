@@ -572,3 +572,15 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   policy_arn = aws_iam_policy.cluster_autoscaler[0].arn
   role       = aws_iam_role.cluster_autoscaler[0].name
 }
+
+resource "null_resource" "update_kubeconfig" {
+  depends_on = [aws_eks_cluster.main]
+
+  triggers = {
+    cluster_name = aws_eks_cluster.main.name
+  }
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.main.name}"
+  }
+}

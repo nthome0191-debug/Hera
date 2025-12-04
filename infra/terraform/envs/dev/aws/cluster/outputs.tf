@@ -32,6 +32,10 @@ output "cluster_name" {
   value = module.eks_cluster.cluster_name
 }
 
+output "region" {
+  value = var.region
+}
+
 output "cluster_arn" {
   value = module.eks_cluster.cluster_arn
 }
