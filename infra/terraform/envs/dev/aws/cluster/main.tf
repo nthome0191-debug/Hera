@@ -32,6 +32,7 @@ module "eks_cluster" {
   environment                = var.environment
   region                     = var.region
   kubernetes_version         = var.kubernetes_version
+  kubeconfig_context_name  = var.kubeconfig_context_name
   vpc_id                     = module.network.vpc_id
   private_subnet_ids         = module.network.private_subnet_ids
   public_subnet_ids          = module.network.public_subnet_ids

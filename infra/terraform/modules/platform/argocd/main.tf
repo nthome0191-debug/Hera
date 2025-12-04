@@ -1,20 +1,10 @@
 locals {
   admin_password = var.admin_password != "" ? var.admin_password : random_password.admin.result
 }
-
-# -----------------------------
-# Random admin password if not provided
-# -----------------------------
-
 resource "random_password" "admin" {
   length  = 16
   special = true
 }
-
-# -----------------------------
-# Namespace (optional)
-# -----------------------------
-
 resource "kubernetes_namespace" "argocd" {
   count = var.create_namespace ? 1 : 0
 
@@ -23,10 +13,6 @@ resource "kubernetes_namespace" "argocd" {
     labels = var.tags
   }
 }
-
-# -----------------------------
-# Install ArgoCD via Helm
-# -----------------------------
 
 resource "helm_release" "argocd" {
   name       = "argocd"
@@ -65,10 +51,6 @@ resource "helm_release" "argocd" {
   timeout       = 600
 }
 
-# -----------------------------
-# Override initial admin password
-# -----------------------------
-
 resource "kubernetes_secret" "admin_password" {
   metadata {
     name      = "argocd-initial-admin-secret"
@@ -90,10 +72,6 @@ resource "kubernetes_secret" "admin_password" {
     ignore_changes = [data]
   }
 }
-
-# -----------------------------
-# Git Credentials Secret for ArgoCD
-# -----------------------------
 
 resource "kubernetes_secret" "git_credentials" {
   metadata {

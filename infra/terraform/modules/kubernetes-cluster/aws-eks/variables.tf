@@ -175,3 +175,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "kubeconfig_context_name" {
+  description = "If set, rename the kubeconfig context to this name. If empty, no renaming occurs."
+  type        = string
+  default     = ""
+}

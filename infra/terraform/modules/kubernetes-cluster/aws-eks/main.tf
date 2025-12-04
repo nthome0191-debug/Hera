@@ -573,14 +573,25 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   role       = aws_iam_role.cluster_autoscaler[0].name
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "null_resource" "update_kubeconfig" {
   depends_on = [aws_eks_cluster.main]
 
   triggers = {
     cluster_name = aws_eks_cluster.main.name
+    region       = var.region
+    context_name = var.kubeconfig_context_name
   }
 
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.main.name}"
+    command = <<EOT
+aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.main.name}
+
+if [ "${var.kubeconfig_context_name}" != "" ]; then
+  kubectl config rename-context arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${aws_eks_cluster.main.name} ${var.kubeconfig_context_name} || true
+fi
+EOT
   }
 }
+

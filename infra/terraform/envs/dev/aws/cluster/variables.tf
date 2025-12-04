@@ -194,3 +194,8 @@ variable "eks_addons" {
     }
   }
 }
+
+variable "kubeconfig_context_name" {
+  description = "Friendly kubeconfig context name for this environment"
+  type        = string
+}

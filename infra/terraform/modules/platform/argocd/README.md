@@ -49,7 +49,7 @@ ArgoCD works with ANY Git backend:
 ## Usage
 
 ### Basic Deployment
-
+```
 module "argocd" {
   source      = "../../../modules/platform/argocd"
   cluster_name = "my-cluster"
@@ -59,13 +59,13 @@ module "argocd" {
     ManagedBy   = "Terraform"
   }
 }
-
+```
 ## Connecting ArgoCD to Git
 
 ArgoCD works with any Git backend.
 
 ### Example: GitHub
-
+```
 module "argocd" {
   source = "../../../modules/platform/argocd"
 
@@ -76,9 +76,9 @@ module "argocd" {
   git_repository_username = "github-user"
   git_repository_password = var.github_token
 }
-
+```
 ### Example: GitLab
-
+```
 module "argocd" {
   source = "../../../modules/platform/argocd"
 
@@ -89,9 +89,9 @@ module "argocd" {
   git_repository_username = "gitlab-user"
   git_repository_password = var.gitlab_token
 }
-
+```
 ### Example: Bitbucket
-
+```
 module "argocd" {
   source = "../../../modules/platform/argocd"
 
@@ -102,7 +102,7 @@ module "argocd" {
   git_repository_username = "bitbucket-user"
   git_repository_password = var.bitbucket_password
 }
-
+```
 ## Production HA Configuration
 
 (unchanged from your original README)
@@ -134,16 +134,16 @@ module "argocd" {
 ## Post-Deployment
 
 ### Access the UI
-
+```
 ARGOCD_PASSWORD=$(terraform output -raw argocd_admin_password)
 kubectl port-forward -n argocd svc/argocd-server 8080:443
 Open: https://localhost:8080  
 Login: admin / $ARGOCD_PASSWORD
-
+```
 ## CLI Usage
-
+```
 argocd login localhost:8080 --username admin --password $ARGOCD_PASSWORD --insecure
-
+```
 ## Best Practices
 
 - Store credentials in AWS Secrets Manager
