@@ -292,8 +292,10 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
   retention_in_days = var.flow_logs_retention_days
 
   lifecycle {
-    prevent_destroy = false
-    ignore_changes  = [name]
+    ignore_changes = [
+      name,
+      retention_in_days
+    ]
   }
 
   tags = merge(
@@ -303,6 +305,7 @@ resource "aws_cloudwatch_log_group" "flow_logs" {
     }
   )
 }
+
 
 resource "aws_iam_role" "flow_logs" {
   count = var.enable_flow_logs ? 1 : 0
