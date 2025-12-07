@@ -26,4 +26,9 @@ module "argocd" {
   git_repository_url      = var.git_repository_url
   git_repository_username = var.git_repository_username
   git_repository_password = var.git_repository_password
+
+  initial_app_name                = "guestbook"
+  initial_app_path                = "guestbook" 
+  initial_app_target_revision     = "HEAD"
+  initial_app_destination_namespace = "guestbook-dev"
 }

@@ -66,3 +66,31 @@ variable "git_repository_password" {
   type        = string
   sensitive   = true
 }
+
+# =======================================
+# Initial Application Deployment
+# =======================================
+
+variable "initial_app_name" {
+  description = "The name for the first Argo CD Application resource."
+  type        = string
+  default     = "initial-app"
+}
+
+variable "initial_app_path" {
+  description = "The path within the Git repository where Kubernetes manifests are located."
+  type        = string
+  default     = "."
+}
+
+variable "initial_app_target_revision" {
+  description = "The target revision (branch, tag, or commit hash) for the initial application."
+  type        = string
+  default     = "HEAD"
+}
+
+variable "initial_app_destination_namespace" {
+  description = "The destination namespace on the cluster where the application resources will be deployed."
+  type        = string
+  default     = "default"
+}

@@ -1,7 +1,8 @@
 locals {
-  admin_password = var.admin_password != "" ? var.admin_password : random_password.admin.result
+  admin_password = var.admin_password != "" ? var.admin_password : random_password.admin[0].result
 }
 resource "random_password" "admin" {
+  count   = var.admin_password == "" ? 1 : 0 
   length  = 16
   special = true
 }
@@ -44,6 +45,9 @@ resource "helm_release" "argocd" {
       }
       controller = {
         replicas = 1
+        annotations = {
+          "argocd.argoproj.io/repo-creds": "true" 
+        }
       }
       redis = {
         enabled = true
@@ -70,6 +74,64 @@ resource "kubernetes_secret" "git_credentials" {
     url      = var.git_repository_url
     username = var.git_repository_username
     password = var.git_repository_password
+  }
+
+  depends_on = [
+    helm_release.argocd
+  ]
+}
+
+resource "kubernetes_manifest" "initial_argocd_app" {
+  depends_on = [helm_release.argocd, kubernetes_secret.git_credentials]
+  
+  count = var.git_repository_url != "" ? 1 : 0
+  
+  manifest = {
+    "apiVersion" = "argoproj.io/v1alpha1"
+    "kind"       = "Application"
+    "metadata" = {
+      "name"      = var.initial_app_name
+      "namespace" = var.namespace 
+      "labels" = {
+        "app.kubernetes.io/name" = var.initial_app_name
+      }
+    }
+    "spec" = {
+      "project" = "default"
+      "source" = {
+        "repoURL"        = var.git_repository_url
+        "targetRevision" = var.initial_app_target_revision
+        "path"           = var.initial_app_path
+      }
+      "destination" = {
+        "server"    = "https://kubernetes.default.svc"
+        "namespace" = var.initial_app_destination_namespace
+      }
+      "syncPolicy" = {
+        "automated" = {
+          "prune"    = true
+          "selfHeal" = true 
+        }
+        "syncOptions" = [
+          "CreateNamespace=true"
+        ]
+      }
+    }
+  }
+}
+
+resource "kubernetes_secret" "admin_access" {
+  metadata {
+    name      = "argocd-admin-access"
+    namespace = var.namespace
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
+  }
+
+  data = {
+    admin_password = base64encode(local.admin_password)
+    username       = base64encode("admin")
   }
 
   depends_on = [

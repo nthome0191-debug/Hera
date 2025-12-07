@@ -26,13 +26,14 @@ func Run(ctx context.Context, dir string, action Action) error {
 	}
 
 	var args []string
-	if action == ActionApply {
+	switch action {
+	case ActionApply:
 		args = []string{"apply", "-auto-approve"}
-	} else if action == ActionDestroy {
+	case ActionDestroy:
 		args = []string{"destroy", "-auto-approve"}
-	} else if action == ActionPlan {
+	case ActionPlan:
 		args = []string{"plan"}
-	} else if action == ActionOutput {
+	case ActionOutput:
 		args = []string{"output"}
 	}
 
