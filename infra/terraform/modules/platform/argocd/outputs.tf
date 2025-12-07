@@ -3,9 +3,14 @@ output "namespace" {
   value       = var.namespace
 }
 
+output "admin_username" {
+  description = "ArgoCD admin username"
+  value       = "admin"
+}
+
 output "admin_password" {
   description = "ArgoCD admin password"
-  value       = local.admin_password
+  value       = data.kubernetes_secret.argocd_initial_admin.data["password"]
   sensitive   = true
 }
 
@@ -21,5 +26,5 @@ output "kubectl_port_forward" {
 
 output "kubectl_password_command" {
   description = "Command to retrieve the ArgoCD admin password from the Kubernetes cluster."
-  value       = "kubectl get secret argocd-admin-access -n ${var.namespace} -o jsonpath='{.data.admin_password}' | base64 -d"
+  value       = "kubectl get secret argocd-initial-admin-secret -n ${var.namespace} -o jsonpath='{.data.password}' | base64 -d"
 }

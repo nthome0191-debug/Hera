@@ -1,10 +1,6 @@
 locals {
-  admin_password = var.admin_password != "" ? var.admin_password : random_password.admin[0].result
-}
-resource "random_password" "admin" {
-  count   = var.admin_password == "" ? 1 : 0 
-  length  = 16
-  special = true
+  # Let ArgoCD generate its own password on first install
+  # We'll extract it from the argocd-initial-admin-secret
 }
 resource "kubernetes_namespace" "argocd" {
   count = var.create_namespace ? 1 : 0
@@ -32,11 +28,6 @@ resource "helm_release" "argocd" {
         install = true
         keep    = true
       }
-      configs = {
-        secret = {
-          argocdServerAdminPassword = bcrypt(local.admin_password)
-        }
-      }
       server = {
         replicas = 1
       }
@@ -45,9 +36,6 @@ resource "helm_release" "argocd" {
       }
       controller = {
         replicas = 1
-        annotations = {
-          "argocd.argoproj.io/repo-creds": "true" 
-        }
       }
       redis = {
         enabled = true
@@ -120,18 +108,11 @@ resource "kubernetes_manifest" "initial_argocd_app" {
   }
 }
 
-resource "kubernetes_secret" "admin_access" {
+# Data source to read the auto-generated admin password
+data "kubernetes_secret" "argocd_initial_admin" {
   metadata {
-    name      = "argocd-admin-access"
+    name      = "argocd-initial-admin-secret"
     namespace = var.namespace
-    labels = {
-      "app.kubernetes.io/managed-by" = "terraform"
-    }
-  }
-
-  data = {
-    admin_password = base64encode(local.admin_password)
-    username       = base64encode("admin")
   }
 
   depends_on = [
