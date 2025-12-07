@@ -1,13 +1,15 @@
-module "aws_cluster" {
-  source = "../../../../stacks/aws-cluster"
+locals {
+  tags = {
+    Project     = var.project
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
 
-  # Global
-  region         = var.region
-  aws_account_id = var.aws_account_id
-  project        = var.project
-  environment    = var.environment
+module "network" {
+  source = "../../modules/network/aws"
 
-  # Network
+  region                   = var.region
   vpc_cidr                 = var.vpc_cidr
   availability_zones       = var.availability_zones
   private_subnet_cidrs     = var.private_subnet_cidrs
@@ -16,14 +18,24 @@ module "aws_cluster" {
   single_nat_gateway       = var.single_nat_gateway
   enable_vpc_endpoints     = var.enable_vpc_endpoints
   vpc_endpoints            = var.vpc_endpoints
+  cluster_name             = var.cluster_name
   enable_flow_logs         = var.enable_flow_logs
   flow_logs_retention_days = var.flow_logs_retention_days
   flow_logs_traffic_type   = var.flow_logs_traffic_type
+  tags                     = local.tags
+}
 
-  # EKS
+module "eks_cluster" {
+  source = "../../modules/kubernetes-cluster/aws-eks"
+
   cluster_name               = var.cluster_name
+  environment                = var.environment
+  region                     = var.region
   kubernetes_version         = var.kubernetes_version
   kubeconfig_context_name    = var.kubeconfig_context_name
+  vpc_id                     = module.network.vpc_id
+  private_subnet_ids         = module.network.private_subnet_ids
+  public_subnet_ids          = module.network.public_subnet_ids
   node_groups                = var.node_groups
   enable_private_endpoint    = var.enable_private_endpoint
   enable_public_endpoint     = var.enable_public_endpoint
@@ -33,4 +45,9 @@ module "aws_cluster" {
   enable_irsa                = var.enable_irsa
   use_random_suffix          = var.use_random_suffix
   eks_addons                 = var.eks_addons
+  tags                       = local.tags
+
+  depends_on = [
+    module.network
+  ]
 }

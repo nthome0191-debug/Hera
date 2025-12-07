@@ -48,6 +48,12 @@ variable "git_repository_password" {
   sensitive   = true
 }
 
+variable "argocd_chart_version" {
+  description = "ArgoCD Helm chart version"
+  type        = string
+  default     = "7.7.12"
+}
+
 variable "argocd_admin_password" {
   description = "Admin password for ArgoCD (empty = auto-generate)"
   type        = string
