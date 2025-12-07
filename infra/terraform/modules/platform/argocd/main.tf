@@ -48,65 +48,8 @@ resource "helm_release" "argocd" {
   timeout       = 600
 }
 
-resource "kubernetes_secret" "git_credentials" {
-  metadata {
-    name      = "git-repository-credentials"
-    namespace = var.namespace
-    labels = {
-      "argocd.argoproj.io/secret-type" = "repository"
-    }
-  }
-
-  data = {
-    type     = "git"
-    url      = var.git_repository_url
-    username = var.git_repository_username
-    password = var.git_repository_password
-  }
-
-  depends_on = [
-    helm_release.argocd
-  ]
-}
-
-resource "kubernetes_manifest" "initial_argocd_app" {
-  depends_on = [helm_release.argocd, kubernetes_secret.git_credentials]
-  
-  count = var.git_repository_url != "" ? 1 : 0
-  
-  manifest = {
-    "apiVersion" = "argoproj.io/v1alpha1"
-    "kind"       = "Application"
-    "metadata" = {
-      "name"      = var.initial_app_name
-      "namespace" = var.namespace 
-      "labels" = {
-        "app.kubernetes.io/name" = var.initial_app_name
-      }
-    }
-    "spec" = {
-      "project" = "default"
-      "source" = {
-        "repoURL"        = var.git_repository_url
-        "targetRevision" = var.initial_app_target_revision
-        "path"           = var.initial_app_path
-      }
-      "destination" = {
-        "server"    = "https://kubernetes.default.svc"
-        "namespace" = var.initial_app_destination_namespace
-      }
-      "syncPolicy" = {
-        "automated" = {
-          "prune"    = true
-          "selfHeal" = true 
-        }
-        "syncOptions" = [
-          "CreateNamespace=true"
-        ]
-      }
-    }
-  }
-}
+# Git credentials and initial apps should be managed via ArgoCD UI or kubectl
+# after the cluster is deployed, not through Terraform
 
 # Data source to read the auto-generated admin password
 data "kubernetes_secret" "argocd_initial_admin" {

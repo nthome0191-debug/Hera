@@ -48,8 +48,9 @@ vendor/
 *~
 .DS_Store
 
-# Kubernetes
+# Kubernetes config files (but not kubeconfig Go package)
 **/kubeconfig
+!pkg/**/kubeconfig/
 **/kubeconfig.yaml
 *.kubeconfig
 

@@ -50,23 +50,3 @@ variable "argocd_values" {
   type        = string
   default     = ""
 }
-
-variable "git_repository_url" {
-  description = "Git repository URL for ArgoCD"
-  type        = string
-  default     = ""
-}
-
-variable "git_repository_username" {
-  description = "Git repository username"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "git_repository_password" {
-  description = "Git repository password or token"
-  type        = string
-  default     = ""
-  sensitive   = true
-}

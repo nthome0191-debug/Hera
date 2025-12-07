@@ -47,50 +47,5 @@ variable "admin_password" {
   sensitive   = true
 }
 
-# =======================================
-# Git Repository Credentials
-# =======================================
-
-variable "git_repository_url" {
-  description = "HTTPS Git repository URL for GitOps"
-  type        = string
-}
-
-variable "git_repository_username" {
-  description = "Username for Git repository"
-  type        = string
-}
-
-variable "git_repository_password" {
-  description = "Password/token for Git repository"
-  type        = string
-  sensitive   = true
-}
-
-# =======================================
-# Initial Application Deployment
-# =======================================
-
-variable "initial_app_name" {
-  description = "The name for the first Argo CD Application resource."
-  type        = string
-  default     = "initial-app"
-}
-
-variable "initial_app_path" {
-  description = "The path within the Git repository where Kubernetes manifests are located."
-  type        = string
-  default     = "."
-}
-
-variable "initial_app_target_revision" {
-  description = "The target revision (branch, tag, or commit hash) for the initial application."
-  type        = string
-  default     = "HEAD"
-}
-
-variable "initial_app_destination_namespace" {
-  description = "The destination namespace on the cluster where the application resources will be deployed."
-  type        = string
-  default     = "default"
-}
+# Git repository credentials and initial apps should be configured
+# via ArgoCD UI or kubectl after deployment

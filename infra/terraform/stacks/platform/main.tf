@@ -22,10 +22,6 @@ module "argocd" {
   values           = var.argocd_values
   admin_password   = var.argocd_admin_password
   tags             = local.tags
-
-  git_repository_url      = var.git_repository_url
-  git_repository_username = var.git_repository_username
-  git_repository_password = var.git_repository_password
 }
 
 ########################################

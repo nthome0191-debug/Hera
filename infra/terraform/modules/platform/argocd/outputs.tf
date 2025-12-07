@@ -19,11 +19,6 @@ output "server_service" {
   value       = "argocd-server"
 }
 
-output "kubectl_port_forward" {
-  description = "Port-forward command for ArgoCD UI"
-  value       = "kubectl port-forward -n ${var.namespace} svc/argocd-server 8080:443"
-}
-
 output "kubectl_password_command" {
   description = "Command to retrieve the ArgoCD admin password from the Kubernetes cluster."
   value       = "kubectl get secret argocd-initial-admin-secret -n ${var.namespace} -o jsonpath='{.data.password}' | base64 -d"

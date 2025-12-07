@@ -29,24 +29,8 @@ variable "kubeconfig_context" {
 }
 
 ##############################
-# ArgoCD / GitOps settings
+# ArgoCD settings
 ##############################
-
-variable "git_repository_url" {
-  description = "HTTPS Git repository used by ArgoCD"
-  type        = string
-}
-
-variable "git_repository_username" {
-  description = "Git repository username"
-  type        = string
-}
-
-variable "git_repository_password" {
-  description = "Git repository password/token"
-  type        = string
-  sensitive   = true
-}
 
 variable "argocd_chart_version" {
   description = "ArgoCD Helm chart version"

@@ -23,24 +23,9 @@ output "argocd_server_service" {
   value       = module.argocd.server_service
 }
 
-output "argocd_port_forward_command" {
-  description = "Command to port-forward to ArgoCD UI"
-  value       = module.argocd.kubectl_port_forward
-}
-
 output "argocd_password_command" {
   description = "Command to get ArgoCD admin password"
   value       = module.argocd.kubectl_password_command
-}
-
-output "argocd_access_info" {
-  description = "How to access ArgoCD"
-  value = {
-    url              = "https://localhost:8080"
-    username         = module.argocd.admin_username
-    password_command = module.argocd.kubectl_password_command
-    port_forward     = module.argocd.kubectl_port_forward
-  }
 }
 
 ########################################
