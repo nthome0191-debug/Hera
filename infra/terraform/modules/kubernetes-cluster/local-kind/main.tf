@@ -1,3 +1,14 @@
+locals {
+  worker_nodes_flat = flatten([
+    for group in var.worker_groups : [
+      for i in range(group.count) : {
+        labels = group.labels
+      }
+    ]
+  ])
+}
+
+
 resource "kind_cluster" "main" {
   name            = var.cluster_name
   wait_for_ready  = true
@@ -33,32 +44,23 @@ resource "kind_cluster" "main" {
 
     # Worker nodes
     dynamic "node" {
-      for_each = {
-        for idx, group in var.worker_groups :
-          idx => group
-      }
+      for_each = local.worker_nodes_flat
       content {
-        dynamic "worker" {
-          for_each = range(node.value.count)
-
-          content {
-            role = "worker"
-            kubeadm_config_patches = [
-              yamlencode({
-                kind = "JoinConfiguration"
-                nodeRegistration = {
-                  kubeletExtraArgs = {
-                    node-labels = join(
-                      ",",
-                      [for k, v in node.value.labels : "${k}=${v}"]
-                      
-                    )
-                  }
-                }
-              })
-            ]
-          }
-        }
+        role = "worker"
+        kubeadm_config_patches = [
+          yamlencode({
+            kind = "JoinConfiguration"
+            nodeRegistration = {
+              kubeletExtraArgs = {
+                node-labels = join(
+                  ",",
+                  [for k, v in node.value.labels : "${k}=${v}"]
+                  
+                )
+              }
+            }
+          })
+        ]
       }
     }
   }

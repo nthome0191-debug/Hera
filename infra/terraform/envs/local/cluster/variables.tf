@@ -31,12 +31,3 @@ variable "kubeconfig_path" {
   type        = string
   default     = "~/.kube/config"
 }
-
-variable "worker_groups" {
-  type = list(object({
-    count  = number
-    labels = map(string)
-  }))
-
-  default = []
-}
