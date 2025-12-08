@@ -30,6 +30,10 @@ resource "helm_release" "argocd" {
       }
       server = {
         replicas = 1
+        service = {
+          type = "NodePort"
+          nodePortHttp = 30080
+        }
       }
       repoServer = {
         replicas = 1
