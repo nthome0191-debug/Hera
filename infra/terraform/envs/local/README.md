@@ -59,7 +59,7 @@ This will:
 
 Verify the cluster:
 ```bash
-kubectl cluster-info --context kind-hera-local
+kubectl cluster-info --context hera-local
 kubectl get nodes
 ```
 

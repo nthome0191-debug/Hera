@@ -20,7 +20,7 @@ The system uses a consistent naming pattern for kubeconfig contexts:
 
 | Environment | Pattern | Example |
 |-------------|---------|---------|
-| Local (KIND) | `kind-hera-local` | `kind-hera-local` |
+| Local (KIND) | `hera-local` | `hera-local` |
 | Cloud Environments | `hera-{env}` | `hera-dev`, `hera-staging`, `hera-prod` |
 | Specialized | `hera-{env}` | `hera-playground` |
 
@@ -29,7 +29,7 @@ The system uses a consistent naming pattern for kubeconfig contexts:
 The CLI parses the Terraform directory path to determine the required context:
 
 ```
-infra/terraform/envs/local/platform     → kind-hera-local
+infra/terraform/envs/local/platform     → hera-local
 infra/terraform/envs/dev/platform       → hera-dev
 infra/terraform/envs/dev/aws/cluster    → hera-dev
 infra/terraform/envs/staging/platform   → hera-staging
@@ -49,12 +49,12 @@ $ infractl plan local platform
 Environment: local
 Stack:       platform
 ────────────────────────────────────────────────────
-🔄 Switching kubeconfig context: hera-dev → kind-hera-local
-✔ Switched to context: kind-hera-local
+🔄 Switching kubeconfig context: hera-dev → hera-local
+✔ Switched to context: hera-local
 
 # Context has been switched automatically
 $ kubectl config current-context
-kind-hera-local
+hera-local
 ```
 
 ## Benefits

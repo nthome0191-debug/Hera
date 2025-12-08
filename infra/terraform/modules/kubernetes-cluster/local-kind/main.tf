@@ -33,9 +33,32 @@ resource "kind_cluster" "main" {
 
     # Worker nodes
     dynamic "node" {
-      for_each = range(var.worker_nodes)
+      for_each = {
+        for idx, group in var.worker_groups :
+          idx => group
+      }
       content {
-        role = "worker"
+        dynamic "worker" {
+          for_each = range(node.value.count)
+
+          content {
+            role = "worker"
+            kubeadm_config_patches = [
+              yamlencode({
+                kind = "JoinConfiguration"
+                nodeRegistration = {
+                  kubeletExtraArgs = {
+                    node-labels = join(
+                      ",",
+                      [for k, v in node.value.labels : "${k}=${v}"]
+                      
+                    )
+                  }
+                }
+              })
+            ]
+          }
+        }
       }
     }
   }

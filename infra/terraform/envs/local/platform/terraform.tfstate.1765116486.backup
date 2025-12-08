@@ -1,0 +1,1683 @@
+{
+  "version": 4,
+  "terraform_version": "1.14.0",
+  "serial": 297,
+  "lineage": "d8edad01-a993-cf92-8d0f-f1c45a67d66d",
+  "outputs": {
+    "argocd_access_info": {
+      "value": {
+        "password_command": "kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d",
+        "port_forward": "kubectl port-forward -n argocd svc/argocd-server 8080:443",
+        "url": "https://localhost:8080",
+        "username": "admin"
+      },
+      "type": [
+        "object",
+        {
+          "password_command": "string",
+          "port_forward": "string",
+          "url": "string",
+          "username": "string"
+        }
+      ]
+    },
+    "argocd_admin_password": {
+      "value": "flPszWWYHmTkpj4y",
+      "type": "string",
+      "sensitive": true
+    },
+    "argocd_namespace": {
+      "value": "argocd",
+      "type": "string"
+    },
+    "argocd_port_forward_command": {
+      "value": "kubectl port-forward -n argocd svc/argocd-server 8080:443",
+      "type": "string"
+    },
+    "argocd_server_service": {
+      "value": "argocd-server",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "module": "module.platform.module.argocd",
+      "mode": "data",
+      "type": "kubernetes_secret",
+      "name": "argocd_initial_admin",
+      "provider": "provider[\"registry.terraform.io/hashicorp/kubernetes\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "binary_data": null,
+            "data": {
+              "password": "flPszWWYHmTkpj4y"
+            },
+            "id": "argocd/argocd-initial-admin-secret",
+            "immutable": false,
+            "metadata": [
+              {
+                "annotations": {},
+                "generate_name": "",
+                "generation": 0,
+                "labels": {},
+                "name": "argocd-initial-admin-secret",
+                "namespace": "argocd",
+                "resource_version": "421211",
+                "uid": "5ddecc80-ab83-4e2b-a58e-478527b29741"
+              }
+            ],
+            "type": "Opaque"
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "binary_data"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "data"
+              }
+            ]
+          ],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "module": "module.platform.module.argocd",
+      "mode": "managed",
+      "type": "helm_release",
+      "name": "argocd",
+      "provider": "provider[\"registry.terraform.io/hashicorp/helm\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "atomic": false,
+            "chart": "argo-cd",
+            "cleanup_on_fail": false,
+            "create_namespace": false,
+            "dependency_update": false,
+            "description": null,
+            "devel": null,
+            "disable_crd_hooks": false,
+            "disable_openapi_validation": false,
+            "disable_webhooks": false,
+            "force_update": false,
+            "id": "argocd",
+            "keyring": null,
+            "lint": false,
+            "manifest": null,
+            "max_history": 0,
+            "metadata": [
+              {
+                "app_version": "v2.13.2",
+                "chart": "argo-cd",
+                "first_deployed": 1765114522,
+                "last_deployed": 1765114522,
+                "name": "argocd",
+                "namespace": "argocd",
+                "notes": "In order to access the server UI you have the following options:\n\n1. kubectl port-forward service/argocd-server -n argocd 8080:443\n\n    and then open the browser on http://localhost:8080 and accept the certificate\n\n2. enable ingress in the values file `server.ingress.enabled` and either\n      - Add the annotation for ssl passthrough: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough\n      - Set the `configs.params.\"server.insecure\"` in the values file and terminate SSL at your ingress: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-multiple-ingress-objects-and-hosts\n\n\nAfter reaching the UI the first time you can login with username: admin and the random password generated during the installation. You can find the password by running:\n\nkubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d\n\n(You should delete the initial secret afterwards as suggested by the Getting Started Guide: https://argo-cd.readthedocs.io/en/stable/getting_started/#4-login-using-the-cli)\n",
+                "revision": 1,
+                "values": "{\"controller\":{\"replicas\":1},\"crds\":{\"install\":true,\"keep\":true},\"redis\":{\"enabled\":true},\"repoServer\":{\"replicas\":1},\"server\":{\"replicas\":1}}",
+                "version": "7.7.12"
+              }
+            ],
+            "name": "argocd",
+            "namespace": "argocd",
+            "pass_credentials": false,
+            "postrender": [],
+            "recreate_pods": false,
+            "render_subchart_notes": true,
+            "replace": false,
+            "repository": "https://argoproj.github.io/argo-helm",
+            "repository_ca_file": null,
+            "repository_cert_file": null,
+            "repository_key_file": null,
+            "repository_password": null,
+            "repository_username": null,
+            "reset_values": false,
+            "reuse_values": false,
+            "set": [],
+            "set_list": [],
+            "set_sensitive": [],
+            "skip_crds": false,
+            "status": "deployed",
+            "timeout": 600,
+            "upgrade_install": null,
+            "values": [
+              "\"controller\":\n  \"replicas\": 1\n\"crds\":\n  \"install\": true\n  \"keep\": true\n\"redis\":\n  \"enabled\": true\n\"repoServer\":\n  \"replicas\": 1\n\"server\":\n  \"replicas\": 1\n"
+            ],
+            "verify": false,
+            "version": "7.7.12",
+            "wait": true,
+            "wait_for_jobs": true
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "repository_password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.platform.module.argocd.kubernetes_namespace.argocd"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.platform.module.argocd",
+      "mode": "managed",
+      "type": "kubernetes_manifest",
+      "name": "initial_argocd_app",
+      "provider": "provider[\"registry.terraform.io/hashicorp/kubernetes\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "computed_fields": null,
+            "field_manager": [],
+            "manifest": {
+              "value": {
+                "apiVersion": "argoproj.io/v1alpha1",
+                "kind": "Application",
+                "metadata": {
+                  "labels": {
+                    "app.kubernetes.io/name": "initial-app"
+                  },
+                  "name": "initial-app",
+                  "namespace": "argocd"
+                },
+                "spec": {
+                  "destination": {
+                    "namespace": "default",
+                    "server": "https://kubernetes.default.svc"
+                  },
+                  "project": "default",
+                  "source": {
+                    "path": ".",
+                    "repoURL": "https://github.com/nthome0191-debug/Hera-gitops.git",
+                    "targetRevision": "HEAD"
+                  },
+                  "syncPolicy": {
+                    "automated": {
+                      "prune": true,
+                      "selfHeal": true
+                    },
+                    "syncOptions": [
+                      "CreateNamespace=true"
+                    ]
+                  }
+                }
+              },
+              "type": [
+                "object",
+                {
+                  "apiVersion": "string",
+                  "kind": "string",
+                  "metadata": [
+                    "object",
+                    {
+                      "labels": [
+                        "object",
+                        {
+                          "app.kubernetes.io/name": "string"
+                        }
+                      ],
+                      "name": "string",
+                      "namespace": "string"
+                    }
+                  ],
+                  "spec": [
+                    "object",
+                    {
+                      "destination": [
+                        "object",
+                        {
+                          "namespace": "string",
+                          "server": "string"
+                        }
+                      ],
+                      "project": "string",
+                      "source": [
+                        "object",
+                        {
+                          "path": "string",
+                          "repoURL": "string",
+                          "targetRevision": "string"
+                        }
+                      ],
+                      "syncPolicy": [
+                        "object",
+                        {
+                          "automated": [
+                            "object",
+                            {
+                              "prune": "bool",
+                              "selfHeal": "bool"
+                            }
+                          ],
+                          "syncOptions": [
+                            "tuple",
+                            [
+                              "string"
+                            ]
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "object": {
+              "value": {
+                "apiVersion": "argoproj.io/v1alpha1",
+                "kind": "Application",
+                "metadata": {
+                  "annotations": null,
+                  "creationTimestamp": null,
+                  "deletionGracePeriodSeconds": null,
+                  "deletionTimestamp": null,
+                  "finalizers": null,
+                  "generateName": null,
+                  "generation": null,
+                  "labels": {
+                    "app.kubernetes.io/name": "initial-app"
+                  },
+                  "managedFields": null,
+                  "name": "initial-app",
+                  "namespace": "argocd",
+                  "ownerReferences": null,
+                  "resourceVersion": null,
+                  "selfLink": null,
+                  "uid": null
+                },
+                "operation": {
+                  "info": null,
+                  "initiatedBy": {
+                    "automated": null,
+                    "username": null
+                  },
+                  "retry": {
+                    "backoff": {
+                      "duration": null,
+                      "factor": null,
+                      "maxDuration": null
+                    },
+                    "limit": null
+                  },
+                  "sync": {
+                    "autoHealAttemptsCount": null,
+                    "dryRun": null,
+                    "manifests": null,
+                    "prune": null,
+                    "resources": null,
+                    "revision": null,
+                    "revisions": null,
+                    "source": {
+                      "chart": null,
+                      "directory": {
+                        "exclude": null,
+                        "include": null,
+                        "jsonnet": {
+                          "extVars": null,
+                          "libs": null,
+                          "tlas": null
+                        },
+                        "recurse": null
+                      },
+                      "helm": {
+                        "apiVersions": null,
+                        "fileParameters": null,
+                        "ignoreMissingValueFiles": null,
+                        "kubeVersion": null,
+                        "namespace": null,
+                        "parameters": null,
+                        "passCredentials": null,
+                        "releaseName": null,
+                        "skipCrds": null,
+                        "valueFiles": null,
+                        "values": null,
+                        "valuesObject": null,
+                        "version": null
+                      },
+                      "kustomize": {
+                        "apiVersions": null,
+                        "commonAnnotations": null,
+                        "commonAnnotationsEnvsubst": null,
+                        "commonLabels": null,
+                        "components": null,
+                        "forceCommonAnnotations": null,
+                        "forceCommonLabels": null,
+                        "images": null,
+                        "kubeVersion": null,
+                        "labelWithoutSelector": null,
+                        "namePrefix": null,
+                        "nameSuffix": null,
+                        "namespace": null,
+                        "patches": null,
+                        "replicas": null,
+                        "version": null
+                      },
+                      "path": null,
+                      "plugin": {
+                        "env": null,
+                        "name": null,
+                        "parameters": null
+                      },
+                      "ref": null,
+                      "repoURL": null,
+                      "targetRevision": null
+                    },
+                    "sources": null,
+                    "syncOptions": null,
+                    "syncStrategy": {
+                      "apply": {
+                        "force": null
+                      },
+                      "hook": {
+                        "force": null
+                      }
+                    }
+                  }
+                },
+                "spec": {
+                  "destination": {
+                    "name": null,
+                    "namespace": "default",
+                    "server": "https://kubernetes.default.svc"
+                  },
+                  "ignoreDifferences": null,
+                  "info": null,
+                  "project": "default",
+                  "revisionHistoryLimit": null,
+                  "source": {
+                    "chart": null,
+                    "directory": {
+                      "exclude": null,
+                      "include": null,
+                      "jsonnet": {
+                        "extVars": null,
+                        "libs": null,
+                        "tlas": null
+                      },
+                      "recurse": null
+                    },
+                    "helm": {
+                      "apiVersions": null,
+                      "fileParameters": null,
+                      "ignoreMissingValueFiles": null,
+                      "kubeVersion": null,
+                      "namespace": null,
+                      "parameters": null,
+                      "passCredentials": null,
+                      "releaseName": null,
+                      "skipCrds": null,
+                      "valueFiles": null,
+                      "values": null,
+                      "valuesObject": null,
+                      "version": null
+                    },
+                    "kustomize": {
+                      "apiVersions": null,
+                      "commonAnnotations": null,
+                      "commonAnnotationsEnvsubst": null,
+                      "commonLabels": null,
+                      "components": null,
+                      "forceCommonAnnotations": null,
+                      "forceCommonLabels": null,
+                      "images": null,
+                      "kubeVersion": null,
+                      "labelWithoutSelector": null,
+                      "namePrefix": null,
+                      "nameSuffix": null,
+                      "namespace": null,
+                      "patches": null,
+                      "replicas": null,
+                      "version": null
+                    },
+                    "path": ".",
+                    "plugin": {
+                      "env": null,
+                      "name": null,
+                      "parameters": null
+                    },
+                    "ref": null,
+                    "repoURL": "https://github.com/nthome0191-debug/Hera-gitops.git",
+                    "targetRevision": "HEAD"
+                  },
+                  "sources": null,
+                  "syncPolicy": {
+                    "automated": {
+                      "allowEmpty": null,
+                      "prune": true,
+                      "selfHeal": true
+                    },
+                    "managedNamespaceMetadata": {
+                      "annotations": null,
+                      "labels": null
+                    },
+                    "retry": {
+                      "backoff": {
+                        "duration": null,
+                        "factor": null,
+                        "maxDuration": null
+                      },
+                      "limit": null
+                    },
+                    "syncOptions": [
+                      "CreateNamespace=true"
+                    ]
+                  }
+                }
+              },
+              "type": [
+                "object",
+                {
+                  "apiVersion": "string",
+                  "kind": "string",
+                  "metadata": [
+                    "object",
+                    {
+                      "annotations": [
+                        "map",
+                        "string"
+                      ],
+                      "creationTimestamp": "string",
+                      "deletionGracePeriodSeconds": "number",
+                      "deletionTimestamp": "string",
+                      "finalizers": [
+                        "list",
+                        "string"
+                      ],
+                      "generateName": "string",
+                      "generation": "number",
+                      "labels": [
+                        "map",
+                        "string"
+                      ],
+                      "managedFields": [
+                        "tuple",
+                        [
+                          [
+                            "object",
+                            {
+                              "apiVersion": "string",
+                              "fieldsType": "string",
+                              "fieldsV1": "dynamic",
+                              "manager": "string",
+                              "operation": "string",
+                              "subresource": "string",
+                              "time": "string"
+                            }
+                          ]
+                        ]
+                      ],
+                      "name": "string",
+                      "namespace": "string",
+                      "ownerReferences": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "apiVersion": "string",
+                            "blockOwnerDeletion": "bool",
+                            "controller": "bool",
+                            "kind": "string",
+                            "name": "string",
+                            "uid": "string"
+                          }
+                        ]
+                      ],
+                      "resourceVersion": "string",
+                      "selfLink": "string",
+                      "uid": "string"
+                    }
+                  ],
+                  "operation": [
+                    "object",
+                    {
+                      "info": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "name": "string",
+                            "value": "string"
+                          }
+                        ]
+                      ],
+                      "initiatedBy": [
+                        "object",
+                        {
+                          "automated": "bool",
+                          "username": "string"
+                        }
+                      ],
+                      "retry": [
+                        "object",
+                        {
+                          "backoff": [
+                            "object",
+                            {
+                              "duration": "string",
+                              "factor": "number",
+                              "maxDuration": "string"
+                            }
+                          ],
+                          "limit": "number"
+                        }
+                      ],
+                      "sync": [
+                        "object",
+                        {
+                          "autoHealAttemptsCount": "number",
+                          "dryRun": "bool",
+                          "manifests": [
+                            "list",
+                            "string"
+                          ],
+                          "prune": "bool",
+                          "resources": [
+                            "list",
+                            [
+                              "object",
+                              {
+                                "group": "string",
+                                "kind": "string",
+                                "name": "string",
+                                "namespace": "string"
+                              }
+                            ]
+                          ],
+                          "revision": "string",
+                          "revisions": [
+                            "list",
+                            "string"
+                          ],
+                          "source": [
+                            "object",
+                            {
+                              "chart": "string",
+                              "directory": [
+                                "object",
+                                {
+                                  "exclude": "string",
+                                  "include": "string",
+                                  "jsonnet": [
+                                    "object",
+                                    {
+                                      "extVars": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "code": "bool",
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "libs": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "tlas": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "code": "bool",
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ],
+                                  "recurse": "bool"
+                                }
+                              ],
+                              "helm": [
+                                "object",
+                                {
+                                  "apiVersions": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "fileParameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "name": "string",
+                                        "path": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "ignoreMissingValueFiles": "bool",
+                                  "kubeVersion": "string",
+                                  "namespace": "string",
+                                  "parameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "forceString": "bool",
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "passCredentials": "bool",
+                                  "releaseName": "string",
+                                  "skipCrds": "bool",
+                                  "valueFiles": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "values": "string",
+                                  "valuesObject": "dynamic",
+                                  "version": "string"
+                                }
+                              ],
+                              "kustomize": [
+                                "object",
+                                {
+                                  "apiVersions": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "commonAnnotations": [
+                                    "map",
+                                    "string"
+                                  ],
+                                  "commonAnnotationsEnvsubst": "bool",
+                                  "commonLabels": [
+                                    "map",
+                                    "string"
+                                  ],
+                                  "components": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "forceCommonAnnotations": "bool",
+                                  "forceCommonLabels": "bool",
+                                  "images": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "kubeVersion": "string",
+                                  "labelWithoutSelector": "bool",
+                                  "namePrefix": "string",
+                                  "nameSuffix": "string",
+                                  "namespace": "string",
+                                  "patches": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "options": [
+                                          "map",
+                                          "bool"
+                                        ],
+                                        "patch": "string",
+                                        "path": "string",
+                                        "target": [
+                                          "object",
+                                          {
+                                            "annotationSelector": "string",
+                                            "group": "string",
+                                            "kind": "string",
+                                            "labelSelector": "string",
+                                            "name": "string",
+                                            "namespace": "string",
+                                            "version": "string"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  ],
+                                  "replicas": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "count": "string",
+                                        "name": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "version": "string"
+                                }
+                              ],
+                              "path": "string",
+                              "plugin": [
+                                "object",
+                                {
+                                  "env": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "name": "string",
+                                  "parameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "array": [
+                                          "list",
+                                          "string"
+                                        ],
+                                        "map": [
+                                          "map",
+                                          "string"
+                                        ],
+                                        "name": "string",
+                                        "string": "string"
+                                      }
+                                    ]
+                                  ]
+                                }
+                              ],
+                              "ref": "string",
+                              "repoURL": "string",
+                              "targetRevision": "string"
+                            }
+                          ],
+                          "sources": [
+                            "tuple",
+                            [
+                              [
+                                "object",
+                                {
+                                  "chart": "string",
+                                  "directory": [
+                                    "object",
+                                    {
+                                      "exclude": "string",
+                                      "include": "string",
+                                      "jsonnet": [
+                                        "object",
+                                        {
+                                          "extVars": [
+                                            "list",
+                                            [
+                                              "object",
+                                              {
+                                                "code": "bool",
+                                                "name": "string",
+                                                "value": "string"
+                                              }
+                                            ]
+                                          ],
+                                          "libs": [
+                                            "list",
+                                            "string"
+                                          ],
+                                          "tlas": [
+                                            "list",
+                                            [
+                                              "object",
+                                              {
+                                                "code": "bool",
+                                                "name": "string",
+                                                "value": "string"
+                                              }
+                                            ]
+                                          ]
+                                        }
+                                      ],
+                                      "recurse": "bool"
+                                    }
+                                  ],
+                                  "helm": [
+                                    "object",
+                                    {
+                                      "apiVersions": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "fileParameters": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "name": "string",
+                                            "path": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "ignoreMissingValueFiles": "bool",
+                                      "kubeVersion": "string",
+                                      "namespace": "string",
+                                      "parameters": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "forceString": "bool",
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "passCredentials": "bool",
+                                      "releaseName": "string",
+                                      "skipCrds": "bool",
+                                      "valueFiles": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "values": "string",
+                                      "valuesObject": "dynamic",
+                                      "version": "string"
+                                    }
+                                  ],
+                                  "kustomize": [
+                                    "object",
+                                    {
+                                      "apiVersions": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "commonAnnotations": [
+                                        "map",
+                                        "string"
+                                      ],
+                                      "commonAnnotationsEnvsubst": "bool",
+                                      "commonLabels": [
+                                        "map",
+                                        "string"
+                                      ],
+                                      "components": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "forceCommonAnnotations": "bool",
+                                      "forceCommonLabels": "bool",
+                                      "images": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "kubeVersion": "string",
+                                      "labelWithoutSelector": "bool",
+                                      "namePrefix": "string",
+                                      "nameSuffix": "string",
+                                      "namespace": "string",
+                                      "patches": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "options": [
+                                              "map",
+                                              "bool"
+                                            ],
+                                            "patch": "string",
+                                            "path": "string",
+                                            "target": [
+                                              "object",
+                                              {
+                                                "annotationSelector": "string",
+                                                "group": "string",
+                                                "kind": "string",
+                                                "labelSelector": "string",
+                                                "name": "string",
+                                                "namespace": "string",
+                                                "version": "string"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      ],
+                                      "replicas": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "count": "string",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "version": "string"
+                                    }
+                                  ],
+                                  "path": "string",
+                                  "plugin": [
+                                    "object",
+                                    {
+                                      "env": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "name": "string",
+                                      "parameters": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "array": [
+                                              "list",
+                                              "string"
+                                            ],
+                                            "map": [
+                                              "map",
+                                              "string"
+                                            ],
+                                            "name": "string",
+                                            "string": "string"
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ],
+                                  "ref": "string",
+                                  "repoURL": "string",
+                                  "targetRevision": "string"
+                                }
+                              ]
+                            ]
+                          ],
+                          "syncOptions": [
+                            "list",
+                            "string"
+                          ],
+                          "syncStrategy": [
+                            "object",
+                            {
+                              "apply": [
+                                "object",
+                                {
+                                  "force": "bool"
+                                }
+                              ],
+                              "hook": [
+                                "object",
+                                {
+                                  "force": "bool"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "spec": [
+                    "object",
+                    {
+                      "destination": [
+                        "object",
+                        {
+                          "name": "string",
+                          "namespace": "string",
+                          "server": "string"
+                        }
+                      ],
+                      "ignoreDifferences": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "group": "string",
+                            "jqPathExpressions": [
+                              "list",
+                              "string"
+                            ],
+                            "jsonPointers": [
+                              "list",
+                              "string"
+                            ],
+                            "kind": "string",
+                            "managedFieldsManagers": [
+                              "list",
+                              "string"
+                            ],
+                            "name": "string",
+                            "namespace": "string"
+                          }
+                        ]
+                      ],
+                      "info": [
+                        "list",
+                        [
+                          "object",
+                          {
+                            "name": "string",
+                            "value": "string"
+                          }
+                        ]
+                      ],
+                      "project": "string",
+                      "revisionHistoryLimit": "number",
+                      "source": [
+                        "object",
+                        {
+                          "chart": "string",
+                          "directory": [
+                            "object",
+                            {
+                              "exclude": "string",
+                              "include": "string",
+                              "jsonnet": [
+                                "object",
+                                {
+                                  "extVars": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "code": "bool",
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "libs": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "tlas": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "code": "bool",
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ]
+                                }
+                              ],
+                              "recurse": "bool"
+                            }
+                          ],
+                          "helm": [
+                            "object",
+                            {
+                              "apiVersions": [
+                                "list",
+                                "string"
+                              ],
+                              "fileParameters": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "name": "string",
+                                    "path": "string"
+                                  }
+                                ]
+                              ],
+                              "ignoreMissingValueFiles": "bool",
+                              "kubeVersion": "string",
+                              "namespace": "string",
+                              "parameters": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "forceString": "bool",
+                                    "name": "string",
+                                    "value": "string"
+                                  }
+                                ]
+                              ],
+                              "passCredentials": "bool",
+                              "releaseName": "string",
+                              "skipCrds": "bool",
+                              "valueFiles": [
+                                "list",
+                                "string"
+                              ],
+                              "values": "string",
+                              "valuesObject": "dynamic",
+                              "version": "string"
+                            }
+                          ],
+                          "kustomize": [
+                            "object",
+                            {
+                              "apiVersions": [
+                                "list",
+                                "string"
+                              ],
+                              "commonAnnotations": [
+                                "map",
+                                "string"
+                              ],
+                              "commonAnnotationsEnvsubst": "bool",
+                              "commonLabels": [
+                                "map",
+                                "string"
+                              ],
+                              "components": [
+                                "list",
+                                "string"
+                              ],
+                              "forceCommonAnnotations": "bool",
+                              "forceCommonLabels": "bool",
+                              "images": [
+                                "list",
+                                "string"
+                              ],
+                              "kubeVersion": "string",
+                              "labelWithoutSelector": "bool",
+                              "namePrefix": "string",
+                              "nameSuffix": "string",
+                              "namespace": "string",
+                              "patches": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "options": [
+                                      "map",
+                                      "bool"
+                                    ],
+                                    "patch": "string",
+                                    "path": "string",
+                                    "target": [
+                                      "object",
+                                      {
+                                        "annotationSelector": "string",
+                                        "group": "string",
+                                        "kind": "string",
+                                        "labelSelector": "string",
+                                        "name": "string",
+                                        "namespace": "string",
+                                        "version": "string"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              ],
+                              "replicas": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "count": "string",
+                                    "name": "string"
+                                  }
+                                ]
+                              ],
+                              "version": "string"
+                            }
+                          ],
+                          "path": "string",
+                          "plugin": [
+                            "object",
+                            {
+                              "env": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "name": "string",
+                                    "value": "string"
+                                  }
+                                ]
+                              ],
+                              "name": "string",
+                              "parameters": [
+                                "list",
+                                [
+                                  "object",
+                                  {
+                                    "array": [
+                                      "list",
+                                      "string"
+                                    ],
+                                    "map": [
+                                      "map",
+                                      "string"
+                                    ],
+                                    "name": "string",
+                                    "string": "string"
+                                  }
+                                ]
+                              ]
+                            }
+                          ],
+                          "ref": "string",
+                          "repoURL": "string",
+                          "targetRevision": "string"
+                        }
+                      ],
+                      "sources": [
+                        "tuple",
+                        [
+                          [
+                            "object",
+                            {
+                              "chart": "string",
+                              "directory": [
+                                "object",
+                                {
+                                  "exclude": "string",
+                                  "include": "string",
+                                  "jsonnet": [
+                                    "object",
+                                    {
+                                      "extVars": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "code": "bool",
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ],
+                                      "libs": [
+                                        "list",
+                                        "string"
+                                      ],
+                                      "tlas": [
+                                        "list",
+                                        [
+                                          "object",
+                                          {
+                                            "code": "bool",
+                                            "name": "string",
+                                            "value": "string"
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ],
+                                  "recurse": "bool"
+                                }
+                              ],
+                              "helm": [
+                                "object",
+                                {
+                                  "apiVersions": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "fileParameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "name": "string",
+                                        "path": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "ignoreMissingValueFiles": "bool",
+                                  "kubeVersion": "string",
+                                  "namespace": "string",
+                                  "parameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "forceString": "bool",
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "passCredentials": "bool",
+                                  "releaseName": "string",
+                                  "skipCrds": "bool",
+                                  "valueFiles": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "values": "string",
+                                  "valuesObject": "dynamic",
+                                  "version": "string"
+                                }
+                              ],
+                              "kustomize": [
+                                "object",
+                                {
+                                  "apiVersions": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "commonAnnotations": [
+                                    "map",
+                                    "string"
+                                  ],
+                                  "commonAnnotationsEnvsubst": "bool",
+                                  "commonLabels": [
+                                    "map",
+                                    "string"
+                                  ],
+                                  "components": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "forceCommonAnnotations": "bool",
+                                  "forceCommonLabels": "bool",
+                                  "images": [
+                                    "list",
+                                    "string"
+                                  ],
+                                  "kubeVersion": "string",
+                                  "labelWithoutSelector": "bool",
+                                  "namePrefix": "string",
+                                  "nameSuffix": "string",
+                                  "namespace": "string",
+                                  "patches": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "options": [
+                                          "map",
+                                          "bool"
+                                        ],
+                                        "patch": "string",
+                                        "path": "string",
+                                        "target": [
+                                          "object",
+                                          {
+                                            "annotationSelector": "string",
+                                            "group": "string",
+                                            "kind": "string",
+                                            "labelSelector": "string",
+                                            "name": "string",
+                                            "namespace": "string",
+                                            "version": "string"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  ],
+                                  "replicas": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "count": "string",
+                                        "name": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "version": "string"
+                                }
+                              ],
+                              "path": "string",
+                              "plugin": [
+                                "object",
+                                {
+                                  "env": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "name": "string",
+                                        "value": "string"
+                                      }
+                                    ]
+                                  ],
+                                  "name": "string",
+                                  "parameters": [
+                                    "list",
+                                    [
+                                      "object",
+                                      {
+                                        "array": [
+                                          "list",
+                                          "string"
+                                        ],
+                                        "map": [
+                                          "map",
+                                          "string"
+                                        ],
+                                        "name": "string",
+                                        "string": "string"
+                                      }
+                                    ]
+                                  ]
+                                }
+                              ],
+                              "ref": "string",
+                              "repoURL": "string",
+                              "targetRevision": "string"
+                            }
+                          ]
+                        ]
+                      ],
+                      "syncPolicy": [
+                        "object",
+                        {
+                          "automated": [
+                            "object",
+                            {
+                              "allowEmpty": "bool",
+                              "prune": "bool",
+                              "selfHeal": "bool"
+                            }
+                          ],
+                          "managedNamespaceMetadata": [
+                            "object",
+                            {
+                              "annotations": [
+                                "map",
+                                "string"
+                              ],
+                              "labels": [
+                                "map",
+                                "string"
+                              ]
+                            }
+                          ],
+                          "retry": [
+                            "object",
+                            {
+                              "backoff": [
+                                "object",
+                                {
+                                  "duration": "string",
+                                  "factor": "number",
+                                  "maxDuration": "string"
+                                }
+                              ],
+                              "limit": "number"
+                            }
+                          ],
+                          "syncOptions": [
+                            "list",
+                            "string"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "timeouts": [],
+            "wait": [],
+            "wait_for": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 1,
+          "identity": {
+            "api_version": "argoproj.io/v1alpha1",
+            "kind": "Application",
+            "name": "initial-app",
+            "namespace": "argocd"
+          },
+          "dependencies": [
+            "module.platform.module.argocd.helm_release.argocd",
+            "module.platform.module.argocd.kubernetes_namespace.argocd",
+            "module.platform.module.argocd.kubernetes_secret.git_credentials"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.platform.module.argocd",
+      "mode": "managed",
+      "type": "kubernetes_namespace",
+      "name": "argocd",
+      "provider": "provider[\"registry.terraform.io/hashicorp/kubernetes\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "argocd",
+            "metadata": [
+              {
+                "annotations": null,
+                "generate_name": "",
+                "generation": 0,
+                "labels": {
+                  "Environment": "local",
+                  "ManagedBy": "Terraform",
+                  "Project": "hera"
+                },
+                "name": "argocd",
+                "resource_version": "421001",
+                "uid": "483a29bd-a1a7-4a65-8b7a-8e1bde5316bc"
+              }
+            ],
+            "timeouts": null,
+            "wait_for_default_service_account": false
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 1,
+          "identity": {
+            "api_version": "v1",
+            "kind": "Namespace",
+            "name": "argocd"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjozMDAwMDAwMDAwMDB9fQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.platform.module.argocd",
+      "mode": "managed",
+      "type": "kubernetes_secret",
+      "name": "git_credentials",
+      "provider": "provider[\"registry.terraform.io/hashicorp/kubernetes\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "binary_data": null,
+            "binary_data_wo": null,
+            "binary_data_wo_revision": null,
+            "data": {
+              "password": "",
+              "type": "git",
+              "url": "https://github.com/nthome0191-debug/Hera-gitops.git",
+              "username": ""
+            },
+            "data_wo": null,
+            "data_wo_revision": null,
+            "id": "argocd/git-repository-credentials",
+            "immutable": false,
+            "metadata": [
+              {
+                "annotations": null,
+                "generate_name": "",
+                "generation": 0,
+                "labels": {
+                  "argocd.argoproj.io/secret-type": "repository"
+                },
+                "name": "git-repository-credentials",
+                "namespace": "argocd",
+                "resource_version": "421279",
+                "uid": "a5c73503-7018-4439-9873-6a89b9a11f75"
+              }
+            ],
+            "timeouts": null,
+            "type": "Opaque",
+            "wait_for_service_account_token": true
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "binary_data"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "data"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "data"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": "password",
+                  "type": "string"
+                }
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "data"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": "username",
+                  "type": "string"
+                }
+              }
+            ]
+          ],
+          "identity_schema_version": 1,
+          "identity": {
+            "api_version": "v1",
+            "kind": "Secret",
+            "name": "git-repository-credentials",
+            "namespace": "argocd"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.platform.module.argocd.helm_release.argocd",
+            "module.platform.module.argocd.kubernetes_namespace.argocd"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

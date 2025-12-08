@@ -16,11 +16,15 @@ variable "cluster_name" {
   default     = "hera-local"
 }
 
-variable "worker_nodes" {
-  description = "Number of worker nodes"
-  type        = number
-  default     = 2
+variable "worker_groups" {
+  type = list(object({
+    count  = number
+    labels = map(string)
+  }))
+
+  default = []
 }
+
 
 variable "kubeconfig_path" {
   description = "Path where kubeconfig will be written"

@@ -4,6 +4,6 @@ module "local_cluster" {
   project         = var.project
   environment     = var.environment
   cluster_name    = var.cluster_name
-  worker_nodes    = var.worker_nodes
+  worker_groups = var.worker_groups
   kubeconfig_path = var.kubeconfig_path
 }
