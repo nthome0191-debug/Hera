@@ -13,6 +13,9 @@
 **/*_override.tf.json
 **/terraform.tfvars
 !**/terraform.tfvars.example
+**/secrets.auto.tfvars
+**/backend.tf
+**/backend.tf.backup
 
 # Go
 # Binaries for programs and plugins
