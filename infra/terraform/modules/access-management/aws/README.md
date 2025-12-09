@@ -16,12 +16,19 @@ This module provides comprehensive user access management with:
 
 ### Security Hardening
 ✅ Principle of least privilege (explicit denies)
+
 ✅ MFA enforcement
+
 ✅ Strong password policy (16+ chars, complexity)
+
 ✅ Secrets in AWS Secrets Manager (not outputs)
+
 ✅ CloudTrail verification
+
 ✅ Deny destructive operations on critical resources
+
 ✅ Deny IAM user/role management
+
 ✅ Environment-specific RBAC (dev vs prod)
 
 ### Role Types
@@ -45,7 +52,7 @@ This module provides comprehensive user access management with:
 - **DENIED:** All IAM operations
 
 **K8s Permissions:**
-- Full cluster access for read, create, update (NOT delete)
+- Full cluster access for read, create, update, delete
 - Can exec into pods and view logs
 - Cannot delete namespaces, nodes, or cluster-scoped resources
 
