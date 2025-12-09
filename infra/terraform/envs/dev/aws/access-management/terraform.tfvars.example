@@ -1,0 +1,78 @@
+# ==============================================================================
+# Dev Environment - Access Management Configuration
+# ==============================================================================
+
+region         = "us-east-1"
+aws_account_id = "123456789012"  # Replace with your AWS account ID
+environment    = "dev"
+project        = "hera"
+
+# ==============================================================================
+# Security Settings
+# ==============================================================================
+
+enforce_password_policy = true
+enforce_mfa            = true
+allowed_ip_ranges      = []  # Add IP ranges for IP restriction, e.g., ["1.2.3.4/32"]
+verify_cloudtrail      = true
+
+# ==============================================================================
+# User Assignments
+# ==============================================================================
+
+users = {
+  # Example: Infra Manager
+  "john.doe" = {
+    email               = "john.doe@company.com"
+    full_name           = "John Doe"
+    roles               = ["infra-manager"]
+    require_mfa         = true
+    console_access      = true
+    programmatic_access = true
+    environments        = ["dev", "staging", "prod"]
+  }
+
+  # Example: Infra Member
+  "jane.smith" = {
+    email               = "jane.smith@company.com"
+    full_name           = "Jane Smith"
+    roles               = ["infra-member"]
+    require_mfa         = true
+    console_access      = true
+    programmatic_access = true
+    environments        = ["dev", "staging"]
+  }
+
+  # Example: Developer
+  "alice.developer" = {
+    email               = "alice.developer@company.com"
+    full_name           = "Alice Developer"
+    roles               = ["developer"]
+    require_mfa         = true
+    console_access      = false
+    programmatic_access = true
+    environments        = ["dev"]
+  }
+
+  # Example: Security Engineer
+  "bob.security" = {
+    email               = "bob.security@company.com"
+    full_name           = "Bob Security"
+    roles               = ["security-engineer"]
+    require_mfa         = true
+    console_access      = true
+    programmatic_access = true
+    environments        = ["dev", "staging", "prod"]
+  }
+}
+
+# ==============================================================================
+# Tags
+# ==============================================================================
+
+tags = {
+  Project     = "hera"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+  Module      = "access-management"
+}

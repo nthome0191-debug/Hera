@@ -1,0 +1,9 @@
+terraform {
+  backend "s3" {
+    bucket         = "hera-prod-tf-state-YOUR_ACCOUNT_ID"
+    key            = "prod/aws/access-management/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "hera-prod-tf-lock-YOUR_ACCOUNT_ID"
+    encrypt        = true
+  }
+}
