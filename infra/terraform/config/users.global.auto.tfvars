@@ -28,6 +28,16 @@ users = {
     programmatic_access = true
     environments        = ["dev", "staging"]
   }
+  
+  "security2" = {
+    email               = "sec2@example.com"
+    full_name           = "Security 2"
+    roles               = ["developer"]
+    require_mfa         = true
+    console_access      = true
+    programmatic_access = true
+    environments        = ["staging", "prod"]
+  }
 }
 
 enforce_password_policy = true

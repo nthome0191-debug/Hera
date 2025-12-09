@@ -200,11 +200,6 @@ variable "kubeconfig_context_name" {
   type        = string
 }
 
-variable "aws_account_id" {
-  description = "AWS account ID"
-  type        = string
-}
-
 variable "users" {
   description = "Map of users to their role assignments"
   type = map(object({
@@ -241,4 +236,21 @@ variable "verify_cloudtrail" {
   description = "Verify CloudTrail is enabled for audit logging"
   type        = bool
   default     = true
+}
+
+variable "create_cloudtrail" {
+  type        = bool
+  default     = false
+  description = "Whether to create CloudTrail and its audit S3 bucket in this environment"
+}
+
+variable "cloudtrail_name" {
+  type        = string
+  default     = null
+  description = "Optional override for CloudTrail trail name"
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
 }

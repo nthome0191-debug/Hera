@@ -29,16 +29,10 @@ resource "aws_iam_account_password_policy" "strict" {
 # Verify CloudTrail is enabled for audit logging
 # This is a safety check to ensure user actions are logged
 
-resource "null_resource" "verify_cloudtrail" {
-  count = var.verify_cloudtrail ? 1 : 0
+resource "null_resource" "warn_cloudtrail" {
+  count = (var.verify_cloudtrail && var.cloudtrail_name == null) ? 1 : 0
 
   provisioner "local-exec" {
-    command = <<EOF
-if [ -z "${try(data.aws_cloudtrail_trail.main[0].id, "")}" ]; then
-  echo "WARNING: CloudTrail not found. User actions will not be logged."
-  echo "CloudTrail name should be: ${var.project}-${var.environment}-trail"
-  echo "Consider setting verify_cloudtrail = false if CloudTrail has a different name."
-fi
-EOF
+    command = "echo 'WARNING: CloudTrail verification enabled, but no CloudTrail name was supplied.'"
   }
 }

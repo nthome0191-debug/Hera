@@ -137,3 +137,13 @@ output "kubeconfig_instructions" {
   description = "Instructions for setting up kubectl access"
   value       = module.access_management.kubeconfig_instructions
 }
+
+output "cloudtrail_name" {
+  value       = module.cloudtrail.cloudtrail_name
+  description = "CloudTrail trail name created by this stack, or null"
+}
+
+output "cloudtrail_bucket_name" {
+  value       = module.cloudtrail.cloudtrail_bucket_name
+  description = "CloudTrail audit bucket name created by this stack, or null"
+}

@@ -34,6 +34,10 @@ module "aws_cluster" {
   use_random_suffix          = var.use_random_suffix
   eks_addons                 = var.eks_addons
 
+  # CloudTrail
+  create_cloudtrail = var.create_cloudtrail
+  cloudtrail_name   = var.cloudtrail_name
+
   # Access management
   users                  = var.users
   enforce_password_policy = var.enforce_password_policy

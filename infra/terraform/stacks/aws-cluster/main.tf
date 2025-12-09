@@ -52,6 +52,17 @@ module "eks_cluster" {
   ]
 }
 
+module "cloudtrail" {
+  source = "../../modules/cloudtrail"
+
+  create_cloudtrail = var.create_cloudtrail
+  cloudtrail_name   = var.cloudtrail_name
+  project           = var.project
+  environment       = var.environment
+  tags              = var.tags
+}
+
+
 module "access_management" {
   source = "../../modules/access-management/aws"
 
