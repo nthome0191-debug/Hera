@@ -1,42 +1,18 @@
 # ==============================================================================
-# Namespaces for Environment Separation
+# Kubernetes RBAC - Cluster-Scoped Permissions
 # ==============================================================================
-
-resource "kubernetes_namespace_v1" "dev" {
-  count = var.environment == "dev" ? 1 : 0
-
-  metadata {
-    name = "dev"
-    labels = {
-      environment = "dev"
-      managed-by  = "terraform"
-    }
-  }
-}
-
-resource "kubernetes_namespace_v1" "staging" {
-  count = var.environment == "staging" ? 1 : 0
-
-  metadata {
-    name = "staging"
-    labels = {
-      environment = "staging"
-      managed-by  = "terraform"
-    }
-  }
-}
-
-resource "kubernetes_namespace_v1" "prod" {
-  count = var.environment == "prod" ? 1 : 0
-
-  metadata {
-    name = "prod"
-    labels = {
-      environment = "prod"
-      managed-by  = "terraform"
-    }
-  }
-}
+# All permissions are cluster-wide, not namespace-specific
+#
+# Access Model:
+# - ONLY members (assigned to roles) can access clusters
+# - All members get read access cluster-wide (get, list, watch, describe)
+#
+# Write/Delete Permissions:
+# - Infra Manager: Full admin on ALL environments
+# - Infra Member: Full CRUD + delete on ALL environments
+# - Developer: Full CRUD + delete on DEV only, read-only on staging/prod
+# - Security Engineer: Full CRUD + delete on DEV only, read-only on staging/prod
+# ==============================================================================
 
 # ==============================================================================
 # ClusterRole: Infra Manager (Full Cluster Admin)
@@ -61,7 +37,7 @@ resource "kubernetes_cluster_role_binding_v1" "infra_manager" {
 }
 
 # ==============================================================================
-# ClusterRole: Infra Member (Full Cluster Access, No Destructive Ops)
+# ClusterRole: Infra Member (Full Cluster Control)
 # ==============================================================================
 
 resource "kubernetes_cluster_role_v1" "infra_member" {
@@ -69,14 +45,14 @@ resource "kubernetes_cluster_role_v1" "infra_member" {
     name = "${var.project}-${var.environment}-infra-member"
   }
 
-  # Full read access
+  # Full read access to everything
   rule {
     api_groups = ["*"]
     resources  = ["*"]
     verbs      = ["get", "list", "watch"]
   }
 
-  # Create/update (but not delete) in most resources
+  # Full CRUD on application resources (create, update, patch, delete)
   rule {
     api_groups = ["", "apps", "batch", "extensions"]
     resources = [
@@ -84,21 +60,21 @@ resource "kubernetes_cluster_role_v1" "infra_member" {
       "statefulsets", "daemonsets", "jobs", "cronjobs",
       "configmaps", "secrets", "persistentvolumeclaims",
     ]
-    verbs = ["create", "update", "patch"]
+    verbs = ["create", "update", "patch", "delete"]
   }
 
-  # Allow exec/logs for debugging
+  # Allow exec/logs/port-forward for debugging
   rule {
     api_groups = [""]
-    resources  = ["pods", "pods/log", "pods/exec"]
+    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
     verbs      = ["get", "list", "create"]
   }
 
-  # Network policies
+  # Full CRUD on network resources
   rule {
     api_groups = ["networking.k8s.io"]
     resources  = ["networkpolicies", "ingresses"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 }
 
@@ -121,66 +97,82 @@ resource "kubernetes_cluster_role_binding_v1" "infra_member" {
 }
 
 # ==============================================================================
-# ClusterRole: Developer (Environment-Specific Access)
+# ClusterRole: Developer (Environment-Based Permissions)
 # ==============================================================================
 
-# ClusterRole for read-only cluster-wide (for non-dev environments)
-resource "kubernetes_cluster_role_v1" "developer_readonly" {
-  metadata {
-    name = "${var.project}-${var.environment}-developer-readonly"
-  }
-
-  rule {
-    api_groups = ["", "apps", "batch", "extensions", "networking.k8s.io"]
-    resources = [
-      "pods", "pods/log", "services", "deployments", "replicasets",
-      "statefulsets", "daemonsets", "jobs", "cronjobs",
-      "configmaps", "persistentvolumeclaims", "ingresses",
-    ]
-    verbs = ["get", "list", "watch"]
-  }
-}
-
-# Namespace-specific Role for full access (dev environment only)
-resource "kubernetes_role_v1" "developer_full_access" {
+# Dev Environment: Full CRUD + delete (same as infra member)
+resource "kubernetes_cluster_role_v1" "developer_full" {
   count = var.environment == "dev" ? 1 : 0
 
   metadata {
-    name      = "${var.project}-developer-full-access"
-    namespace = kubernetes_namespace_v1.dev[0].metadata[0].name
+    name = "${var.project}-${var.environment}-developer"
   }
 
-  # Full access to application resources
+  # Full read access to everything
+  rule {
+    api_groups = ["*"]
+    resources  = ["*"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  # Full CRUD on application resources (create, update, patch, delete)
   rule {
     api_groups = ["", "apps", "batch", "extensions"]
     resources = [
-      "pods", "pods/log", "pods/exec", "services", "deployments",
-      "replicasets", "statefulsets", "daemonsets", "jobs", "cronjobs",
+      "pods", "services", "deployments", "replicasets",
+      "statefulsets", "daemonsets", "jobs", "cronjobs",
       "configmaps", "secrets", "persistentvolumeclaims",
     ]
-    verbs = ["*"] # Full CRUD + exec
+    verbs = ["create", "update", "patch", "delete"]
   }
 
-  # Network policies
+  # Allow exec/logs/port-forward for debugging
+  rule {
+    api_groups = [""]
+    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
+    verbs      = ["get", "list", "create"]
+  }
+
+  # Full CRUD on network resources
   rule {
     api_groups = ["networking.k8s.io"]
     resources  = ["networkpolicies", "ingresses"]
-    verbs      = ["*"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 }
 
-# ClusterRoleBinding for read-only access to all namespaces
-resource "kubernetes_cluster_role_binding_v1" "developer_readonly" {
+# Staging/Prod Environment: Read-only
+resource "kubernetes_cluster_role_v1" "developer_readonly" {
   count = var.environment != "dev" ? 1 : 0
 
   metadata {
-    name = "${var.project}-${var.environment}-developer-readonly"
+    name = "${var.project}-${var.environment}-developer"
+  }
+
+  # Read-only access to all resources cluster-wide
+  rule {
+    api_groups = ["*"]
+    resources  = ["*"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  # View logs
+  rule {
+    api_groups = [""]
+    resources  = ["pods/log"]
+    verbs      = ["get", "list"]
+  }
+}
+
+resource "kubernetes_cluster_role_binding_v1" "developer" {
+  metadata {
+    name = "${var.project}-${var.environment}-developer"
   }
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role_v1.developer_readonly.metadata[0].name
+    name      = var.environment == "dev" ? kubernetes_cluster_role_v1.developer_full[0].metadata[0].name : kubernetes_cluster_role_v1.developer_readonly[0].metadata[0].name
   }
 
   subject {
@@ -190,33 +182,55 @@ resource "kubernetes_cluster_role_binding_v1" "developer_readonly" {
   }
 }
 
-# RoleBinding for full access to dev namespace (dev env only)
-resource "kubernetes_role_binding_v1" "developer_full_access" {
+# ==============================================================================
+# ClusterRole: Security Engineer (Environment-Based Permissions)
+# ==============================================================================
+
+# Dev Environment: Full CRUD + delete (same as infra member)
+resource "kubernetes_cluster_role_v1" "security_engineer_full" {
   count = var.environment == "dev" ? 1 : 0
 
   metadata {
-    name      = "${var.project}-developer-full-access"
-    namespace = kubernetes_namespace_v1.dev[0].metadata[0].name
+    name = "${var.project}-${var.environment}-security-engineer"
   }
 
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "Role"
-    name      = kubernetes_role_v1.developer_full_access[0].metadata[0].name
+  # Full read access to everything
+  rule {
+    api_groups = ["*"]
+    resources  = ["*"]
+    verbs      = ["get", "list", "watch"]
   }
 
-  subject {
-    kind      = "Group"
-    name      = "hera:developers"
-    api_group = "rbac.authorization.k8s.io"
+  # Full CRUD on application resources (create, update, patch, delete)
+  rule {
+    api_groups = ["", "apps", "batch", "extensions"]
+    resources = [
+      "pods", "services", "deployments", "replicasets",
+      "statefulsets", "daemonsets", "jobs", "cronjobs",
+      "configmaps", "secrets", "persistentvolumeclaims",
+    ]
+    verbs = ["create", "update", "patch", "delete"]
+  }
+
+  # Allow exec/logs/port-forward for debugging
+  rule {
+    api_groups = [""]
+    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
+    verbs      = ["get", "list", "create"]
+  }
+
+  # Full CRUD on network resources
+  rule {
+    api_groups = ["networking.k8s.io"]
+    resources  = ["networkpolicies", "ingresses"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 }
 
-# ==============================================================================
-# ClusterRole: Security Engineer (Read-Only Security Focus)
-# ==============================================================================
+# Staging/Prod Environment: Read-only
+resource "kubernetes_cluster_role_v1" "security_engineer_readonly" {
+  count = var.environment != "dev" ? 1 : 0
 
-resource "kubernetes_cluster_role_v1" "security_engineer" {
   metadata {
     name = "${var.project}-${var.environment}-security-engineer"
   }
@@ -228,30 +242,11 @@ resource "kubernetes_cluster_role_v1" "security_engineer" {
     verbs      = ["get", "list", "watch"]
   }
 
-  # Read security-related resources
-  rule {
-    api_groups = ["policy"]
-    resources  = ["podsecuritypolicies", "poddisruptionbudgets"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = ["networking.k8s.io"]
-    resources  = ["networkpolicies"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = ["rbac.authorization.k8s.io"]
-    resources  = ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  # Read audit logs and events
+  # View logs
   rule {
     api_groups = [""]
-    resources  = ["events"]
-    verbs      = ["get", "list", "watch"]
+    resources  = ["pods/log"]
+    verbs      = ["get", "list"]
   }
 }
 
@@ -263,7 +258,7 @@ resource "kubernetes_cluster_role_binding_v1" "security_engineer" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role_v1.security_engineer.metadata[0].name
+    name      = var.environment == "dev" ? kubernetes_cluster_role_v1.security_engineer_full[0].metadata[0].name : kubernetes_cluster_role_v1.security_engineer_readonly[0].metadata[0].name
   }
 
   subject {
