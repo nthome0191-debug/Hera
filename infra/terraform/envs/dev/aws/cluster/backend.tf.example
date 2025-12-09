@@ -1,0 +1,13 @@
+# Terraform backend configuration
+# Copy this file to backend.tf and replace YOUR_AWS_ACCOUNT_ID with your actual AWS account ID
+# This file is needed for Terraform to store state remotely
+
+terraform {
+  backend "s3" {
+    bucket         = "hera-dev-tf-state-YOUR_AWS_ACCOUNT_ID"
+    key            = "dev/aws/cluster/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "hera-dev-tf-lock-YOUR_AWS_ACCOUNT_ID"
+    encrypt        = true
+  }
+}

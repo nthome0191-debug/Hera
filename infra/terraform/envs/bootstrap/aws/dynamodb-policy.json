@@ -14,7 +14,7 @@
         "dynamodb:DescribeContinuousBackups"
       ],
       "Resource": [
-        "arn:aws:dynamodb:us-east-1:628987527285:table/hera-*-tf-lock"
+        "arn:aws:dynamodb:*:*:table/hera-*-tf-lock"
       ]
     }
   ]
