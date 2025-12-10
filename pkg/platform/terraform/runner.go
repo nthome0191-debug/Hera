@@ -25,7 +25,7 @@ func Run(ctx context.Context, dir string, action Action) error {
 		fmt.Fprintf(os.Stderr, "⚠ Warning: Could not switch kubeconfig context: %v\n", err)
 	}
 
-	initCmd := exec.CommandContext(ctx, "terraform", "init", "-upgrade")
+	initCmd := exec.CommandContext(ctx, "terraform", "init", "-upgrade", "-reconfigure")
 	initCmd.Stdout = os.Stdout
 	initCmd.Stderr = os.Stderr
 	initCmd.Stdin = os.Stdin

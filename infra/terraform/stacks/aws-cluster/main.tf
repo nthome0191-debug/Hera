@@ -51,3 +51,33 @@ module "eks_cluster" {
     module.network
   ]
 }
+
+module "cloudtrail" {
+  source = "../../modules/cloudtrail"
+
+  region = var.region
+  create_cloudtrail = var.create_cloudtrail
+  cloudtrail_name   = var.cloudtrail_name
+  project           = var.project
+  tags              = var.tags
+}
+
+module "access_management" {
+  source = "../../modules/access-management/aws"
+
+  environment          = var.environment
+  region               = var.region
+  aws_account_id       = var.aws_account_id
+  project              = var.project
+  cluster_name         = module.eks_cluster.cluster_name
+  node_role_name       = module.eks_cluster.node_iam_role_name
+  users                = var.users
+  enforce_password_policy = var.enforce_password_policy
+  enforce_mfa             = var.enforce_mfa
+  allowed_ip_ranges       = var.allowed_ip_ranges
+  tags                    = local.tags
+
+  depends_on = [
+    module.eks_cluster
+  ]
+}
