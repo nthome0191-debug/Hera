@@ -1,8 +1,7 @@
 # ==============================================================================
-# Access Management Module - Main Configuration
+# IAM User Management Module - Main Configuration
 # ==============================================================================
-# This module manages IAM users, groups, policies, and Kubernetes RBAC
-# for the Hera infrastructure project.
+# This module manages IAM users, groups, and policies.
 # ==============================================================================
 
 # ==============================================================================

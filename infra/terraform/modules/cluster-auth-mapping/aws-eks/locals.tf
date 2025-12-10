@@ -1,3 +1,7 @@
+# ==============================================================================
+# Local Values
+# ==============================================================================
+
 locals {
   # Map Hera roles to Kubernetes RBAC groups
   role_to_k8s_groups = {
@@ -20,7 +24,7 @@ locals {
   user_mappings = flatten([
     for user_key, user in var.users : [
       for role in user.roles : {
-        userarn  = aws_iam_user.users[user_key].arn
+        userarn  = var.iam_user_arns[user_key]
         username = user_key
         groups   = local.role_to_k8s_groups[role]
       }
@@ -46,10 +50,9 @@ locals {
   common_tags = merge(
     var.tags,
     {
-      Project     = var.project
-      Environment = var.environment
-      ManagedBy   = "Terraform"
-      Module      = "access-management"
+      Project   = var.project
+      ManagedBy = "Terraform"
+      Module    = "cluster-auth-mapping-aws-eks"
     }
   )
 }

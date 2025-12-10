@@ -1,5 +1,5 @@
 # ==============================================================================
-# Kubernetes RBAC - Cluster-Scoped Permissions
+# Kubernetes RBAC - Cluster-Scoped Permissions (Cloud-Agnostic)
 # ==============================================================================
 # All permissions are cluster-wide, not namespace-specific
 #
@@ -20,7 +20,8 @@
 
 resource "kubernetes_cluster_role_binding_v1" "infra_manager" {
   metadata {
-    name = "${var.project}-${var.environment}-infra-manager"
+    name   = "${var.project}-${var.environment}-infra-manager"
+    labels = local.common_labels
   }
 
   role_ref {
@@ -42,7 +43,8 @@ resource "kubernetes_cluster_role_binding_v1" "infra_manager" {
 
 resource "kubernetes_cluster_role_v1" "infra_member" {
   metadata {
-    name = "${var.project}-${var.environment}-infra-member"
+    name   = "${var.project}-${var.environment}-infra-member"
+    labels = local.common_labels
   }
 
   # Full read access to everything
@@ -80,7 +82,8 @@ resource "kubernetes_cluster_role_v1" "infra_member" {
 
 resource "kubernetes_cluster_role_binding_v1" "infra_member" {
   metadata {
-    name = "${var.project}-${var.environment}-infra-member"
+    name   = "${var.project}-${var.environment}-infra-member"
+    labels = local.common_labels
   }
 
   role_ref {
@@ -105,7 +108,8 @@ resource "kubernetes_cluster_role_v1" "developer_full" {
   count = var.environment == "dev" ? 1 : 0
 
   metadata {
-    name = "${var.project}-${var.environment}-developer"
+    name   = "${var.project}-${var.environment}-developer"
+    labels = local.common_labels
   }
 
   # Full read access to everything
@@ -146,7 +150,8 @@ resource "kubernetes_cluster_role_v1" "developer_readonly" {
   count = var.environment != "dev" ? 1 : 0
 
   metadata {
-    name = "${var.project}-${var.environment}-developer"
+    name   = "${var.project}-${var.environment}-developer"
+    labels = local.common_labels
   }
 
   # Read-only access to all resources cluster-wide
@@ -166,7 +171,8 @@ resource "kubernetes_cluster_role_v1" "developer_readonly" {
 
 resource "kubernetes_cluster_role_binding_v1" "developer" {
   metadata {
-    name = "${var.project}-${var.environment}-developer"
+    name   = "${var.project}-${var.environment}-developer"
+    labels = local.common_labels
   }
 
   role_ref {
@@ -191,7 +197,8 @@ resource "kubernetes_cluster_role_v1" "security_engineer_full" {
   count = var.environment == "dev" ? 1 : 0
 
   metadata {
-    name = "${var.project}-${var.environment}-security-engineer"
+    name   = "${var.project}-${var.environment}-security-engineer"
+    labels = local.common_labels
   }
 
   # Full read access to everything
@@ -232,7 +239,8 @@ resource "kubernetes_cluster_role_v1" "security_engineer_readonly" {
   count = var.environment != "dev" ? 1 : 0
 
   metadata {
-    name = "${var.project}-${var.environment}-security-engineer"
+    name   = "${var.project}-${var.environment}-security-engineer"
+    labels = local.common_labels
   }
 
   # Read-only access to all resources
@@ -252,7 +260,8 @@ resource "kubernetes_cluster_role_v1" "security_engineer_readonly" {
 
 resource "kubernetes_cluster_role_binding_v1" "security_engineer" {
   metadata {
-    name = "${var.project}-${var.environment}-security-engineer"
+    name   = "${var.project}-${var.environment}-security-engineer"
+    labels = local.common_labels
   }
 
   role_ref {

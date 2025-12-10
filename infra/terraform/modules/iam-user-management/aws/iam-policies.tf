@@ -116,8 +116,8 @@ data "aws_iam_policy_document" "infra_manager" {
 }
 
 resource "aws_iam_policy" "infra_manager" {
-  name        = "${var.project}-${var.environment}-infra-manager"
-  description = "Infrastructure manager policy for ${var.environment} environment"
+  name        = "${var.project}-infra-manager"
+  description = "Infrastructure manager policy for ${var.project}"
   policy      = data.aws_iam_policy_document.infra_manager.json
   tags        = local.common_tags
 }
@@ -179,8 +179,8 @@ data "aws_iam_policy_document" "infra_member" {
 }
 
 resource "aws_iam_policy" "infra_member" {
-  name        = "${var.project}-${var.environment}-infra-member"
-  description = "Infrastructure member policy for ${var.environment} environment"
+  name        = "${var.project}-infra-member"
+  description = "Infrastructure member policy for ${var.project}"
   policy      = data.aws_iam_policy_document.infra_member.json
   tags        = local.common_tags
 }
@@ -219,8 +219,8 @@ data "aws_iam_policy_document" "developer" {
 }
 
 resource "aws_iam_policy" "developer" {
-  name        = "${var.project}-${var.environment}-developer"
-  description = "Developer policy for ${var.environment} environment - K8s access only"
+  name        = "${var.project}-developer"
+  description = "Developer policy for ${var.project} - K8s access only"
   policy      = data.aws_iam_policy_document.developer.json
   tags        = local.common_tags
 }
@@ -313,8 +313,8 @@ data "aws_iam_policy_document" "security_engineer" {
 }
 
 resource "aws_iam_policy" "security_engineer" {
-  name        = "${var.project}-${var.environment}-security-engineer"
-  description = "Security engineer policy for ${var.environment} environment - read-only security access"
+  name        = "${var.project}-security-engineer"
+  description = "Security engineer policy for ${var.project} - read-only security access"
   policy      = data.aws_iam_policy_document.security_engineer.json
   tags        = local.common_tags
 }
@@ -350,7 +350,7 @@ data "aws_iam_policy_document" "require_mfa" {
 resource "aws_iam_policy" "require_mfa" {
   count = var.enforce_mfa ? 1 : 0
 
-  name        = "${var.project}-${var.environment}-require-mfa"
+  name        = "${var.project}-require-mfa"
   description = "Enforce MFA for all operations except MFA setup"
   policy      = data.aws_iam_policy_document.require_mfa.json
   tags        = local.common_tags
@@ -386,7 +386,7 @@ data "aws_iam_policy_document" "ip_restriction" {
 resource "aws_iam_policy" "ip_restriction" {
   count = length(var.allowed_ip_ranges) > 0 ? 1 : 0
 
-  name        = "${var.project}-${var.environment}-ip-restriction"
+  name        = "${var.project}-ip-restriction"
   description = "Restrict access to allowed IP ranges"
   policy      = data.aws_iam_policy_document.ip_restriction[0].json
   tags        = local.common_tags

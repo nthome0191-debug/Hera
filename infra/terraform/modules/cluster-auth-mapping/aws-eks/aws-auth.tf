@@ -1,5 +1,5 @@
 # ==============================================================================
-# aws-auth ConfigMap Management
+# aws-auth ConfigMap Management (EKS-Specific)
 # ==============================================================================
 # This ConfigMap is critical for EKS authentication.
 # It maps IAM users/roles to Kubernetes users and groups.

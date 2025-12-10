@@ -57,7 +57,7 @@ variable "cluster_name" {
   description = "Eks cluster name"
 }
 
-variable "node_iam_role_name" {
+variable "node_role_name" {
   type = string
-  description = "Eks node iam role name"
+  description = "Eks node role name"
 }

@@ -4,6 +4,10 @@ data "aws_eks_cluster" "cluster" {
   name = var.cluster_name
 }
 
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_name
+}
+
 data "aws_iam_role" "node_role" {
   name = var.node_role_name
 }

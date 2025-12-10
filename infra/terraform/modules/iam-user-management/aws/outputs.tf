@@ -8,7 +8,7 @@ resource "aws_secretsmanager_secret" "user_passwords" {
     user_key => user if user.console_access
   }
 
-  name = "${var.project}/${var.environment}/users/${each.key}/initial-password"
+  name = "${var.project}/users/${each.key}/initial-password"
 
   tags = merge(
     local.common_tags,
@@ -43,7 +43,7 @@ resource "aws_secretsmanager_secret" "access_keys" {
     user_key => user if user.programmatic_access
   }
 
-  name = "${var.project}/${var.environment}/users/${each.key}/access-key"
+  name = "${var.project}/users/${each.key}/access-key"
 
   tags = merge(
     local.common_tags,
@@ -83,6 +83,14 @@ output "iam_users" {
   }
 }
 
+output "iam_user_arns" {
+  description = "Map of IAM user ARNs (for eks-access-management module)"
+  value = {
+    for user_key, user in aws_iam_user.users :
+    user_key => user.arn
+  }
+}
+
 output "iam_groups" {
   description = "Map of IAM groups"
   value = {
@@ -112,26 +120,4 @@ output "user_credentials_secrets" {
       if user.programmatic_access
     }
   }
-}
-
-output "kubernetes_rbac_groups" {
-  description = "Kubernetes RBAC groups created"
-  value = {
-    infra-managers     = "hera:infra-managers"
-    infra-members      = "hera:infra-members"
-    developers         = "hera:developers"
-    security-engineers = "hera:security-engineers"
-  }
-}
-
-output "kubeconfig_instructions" {
-  description = "Instructions for setting up kubectl access"
-  value = templatefile("${path.module}/templates/user-onboarding.tpl", {
-    cluster_name   = var.cluster_name
-    region         = var.region
-    environment    = var.environment
-    console_url    = "https://${data.aws_caller_identity.current.account_id}.signin.aws.amazon.com/console"
-    project        = var.project
-    aws_account_id = data.aws_caller_identity.current.account_id
-  })
 }

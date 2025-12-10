@@ -7,7 +7,7 @@ module "aws_users" {
     environment    = var.environment
 
     cluster_name = var.cluster_name
-    node_iam_role_name = var.node_iam_role_name
+    node_role_name = var.node_role_name
 
     users                  = var.users
     enforce_password_policy = var.enforce_password_policy

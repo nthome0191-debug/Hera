@@ -53,6 +53,13 @@ variable "allowed_ip_ranges" {
 }
 
 variable "cluster_name" {
-  type = string
-  description = "Eks cluster name"
+  type        = string
+  description = "EKS cluster name (optional - if not provided, K8s RBAC setup is skipped)"
+  default     = ""
+}
+
+variable "node_role_name" {
+  type        = string
+  description = "EKS node role name (optional - required if cluster_name is provided)"
+  default     = ""
 }

@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.35"
+    }
   }
 }
 
@@ -29,8 +33,9 @@ provider "aws" {
   }
 }
 
+# Kubernetes provider - only configured when cluster_name is provided
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
+  host                   = var.cluster_name != "" ? data.aws_eks_cluster.cluster[0].endpoint : "https://localhost"
+  cluster_ca_certificate = var.cluster_name != "" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority[0].data) : null
+  token                  = var.cluster_name != "" ? data.aws_eks_cluster_auth.cluster[0].token : null
 }

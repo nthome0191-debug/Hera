@@ -11,9 +11,8 @@ resource "aws_iam_user" "users" {
   tags = merge(
     local.common_tags,
     {
-      Name        = each.value.full_name
-      Email       = each.value.email
-      Environment = var.environment
+      Name  = each.value.full_name
+      Email = each.value.email
     }
   )
 }
