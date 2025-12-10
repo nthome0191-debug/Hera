@@ -58,7 +58,6 @@ module "cloudtrail" {
   create_cloudtrail = var.create_cloudtrail
   cloudtrail_name   = var.cloudtrail_name
   project           = var.project
-  environment       = var.environment
   tags              = var.tags
 }
 

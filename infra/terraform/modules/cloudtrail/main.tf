@@ -12,7 +12,6 @@ resource "aws_s3_bucket" "audit" {
 
   tags = merge(var.tags, {
     "Name"        = local.bucket_name
-    "Environment" = var.environment
     "Project"     = var.project
   })
 }
@@ -66,7 +65,6 @@ resource "aws_cloudtrail" "main" {
 
   tags = merge(var.tags, {
     "Name"        = local.trail_name
-    "Environment" = var.environment
     "Project"     = var.project
   })
 }

@@ -176,33 +176,6 @@ data "aws_iam_policy_document" "infra_member" {
     ]
     resources = ["*"]
   }
-
-  # Deny cluster/VPC creation and deletion
-  statement {
-    sid    = "DenyInfraCreationDeletion"
-    effect = "Deny"
-    actions = [
-      "eks:CreateCluster",
-      "eks:DeleteCluster",
-      "eks:CreateNodegroup",
-      "eks:DeleteNodegroup",
-      "ec2:CreateVpc",
-      "ec2:DeleteVpc",
-      "ec2:CreateSubnet",
-      "ec2:DeleteSubnet",
-      "ec2:RunInstances",
-      "ec2:TerminateInstances",
-    ]
-    resources = ["*"]
-  }
-
-  # Deny all IAM operations
-  statement {
-    sid       = "DenyIAMOperations"
-    effect    = "Deny"
-    actions   = ["iam:*"]
-    resources = ["*"]
-  }
 }
 
 resource "aws_iam_policy" "infra_member" {
@@ -336,27 +309,6 @@ data "aws_iam_policy_document" "security_engineer" {
       "arn:aws:s3:::*config*",
       "arn:aws:s3:::*config*/*",
     ]
-  }
-
-  # Deny all write/delete operations
-  statement {
-    sid    = "DenyWriteOperations"
-    effect = "Deny"
-    actions = [
-      "*:Create*",
-      "*:Delete*",
-      "*:Update*",
-      "*:Put*",
-      "*:Modify*",
-      "*:Remove*",
-      "*:Attach*",
-      "*:Detach*",
-      "*:Enable*",
-      "*:Disable*",
-      "*:Start*",
-      "*:Stop*",
-    ]
-    resources = ["*"]
   }
 }
 
