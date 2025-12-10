@@ -6,20 +6,20 @@ This directory contains the foundational infrastructure required for Terraform r
 
 ## What This Creates
 
-This bootstrap environment creates persistent resources that should **never be destroyed**:
+This bootstrap environment creates persistent resources that should **not be destroyed** unless top using the aws provider:
 
-1. **S3 Bucket** (`hera-dev-tf-state`)
+1. **S3 Bucket** (`project-tf-state`)
    - Stores Terraform state files for the dev environment
    - Versioning enabled for state history
    - Server-side encryption (AES256)
    - Public access completely blocked
 
-2. **DynamoDB Table** (`hera-dev-tf-lock`)
+2. **DynamoDB Table** (`project-tf-lock`)
    - Provides state locking to prevent concurrent modifications
    - Pay-per-request billing mode (cost-effective)
    - Hash key: `LockID`
 
-3. **IAM Admin Role** (`hera-dev-admin`)
+3. **IAM Admin Role** (`project-admin`)
    - Administrative role for managing infrastructure
    - Can be assumed by your AWS account root user
    - Attached to AdministratorAccess policy

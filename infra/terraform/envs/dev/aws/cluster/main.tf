@@ -37,10 +37,4 @@ module "aws_cluster" {
   # CloudTrail
   create_cloudtrail = var.create_cloudtrail
   cloudtrail_name   = var.aws_account_id
-
-  # Access management
-  users                  = var.users
-  enforce_password_policy = var.enforce_password_policy
-  enforce_mfa             = var.enforce_mfa
-  allowed_ip_ranges       = var.allowed_ip_ranges
 }

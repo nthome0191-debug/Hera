@@ -20,6 +20,20 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "users" {
+  description = "Map of users to their role assignments"
+  type = map(object({
+    email               = string
+    full_name           = string
+    roles               = list(string)
+    require_mfa         = bool
+    console_access      = bool
+    programmatic_access = bool
+    environments        = list(string)
+  }))
+  default = {}
+}
+
 variable "enforce_password_policy" {
   description = "Enforce strict password policy"
   type        = bool
@@ -38,26 +52,7 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-variable "users" {
-  description = "Map of users to their role assignments"
-  type = map(object({
-    email               = string
-    full_name           = string
-    roles               = list(string)
-    require_mfa         = bool
-    console_access      = bool
-    programmatic_access = bool
-    environments        = list(string)
-  }))
-  default = {}
-}
-
 variable "cluster_name" {
   type = string
   description = "Eks cluster name"
-}
-
-variable "node_iam_role_name" {
-  type = string
-  description = "Eks node iam role name"
 }

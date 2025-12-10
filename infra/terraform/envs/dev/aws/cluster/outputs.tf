@@ -89,14 +89,6 @@ output "eks_addons" {
   value = module.aws_cluster.eks_addons
 }
 
-output "ebs_csi_driver_role_arn" {
-  value = module.aws_cluster.ebs_csi_driver_role_arn
-}
-
-output "cluster_autoscaler_role_arn" {
-  value = module.aws_cluster.cluster_autoscaler_role_arn
-}
-
 output "kubeconfig_path" {
   description = "Path to kubeconfig file for kubectl/platform access"
   value       = module.aws_cluster.kubeconfig_path
