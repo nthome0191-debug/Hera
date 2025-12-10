@@ -55,6 +55,7 @@ module "eks_cluster" {
 module "cloudtrail" {
   source = "../../modules/cloudtrail"
 
+  region = var.region
   create_cloudtrail = var.create_cloudtrail
   cloudtrail_name   = var.cloudtrail_name
   project           = var.project

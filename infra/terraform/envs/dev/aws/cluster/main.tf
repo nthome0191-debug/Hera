@@ -36,7 +36,7 @@ module "aws_cluster" {
 
   # CloudTrail
   create_cloudtrail = var.create_cloudtrail
-  cloudtrail_name   = var.cloudtrail_name
+  cloudtrail_name   = var.aws_account_id
 
   # Access management
   users                  = var.users

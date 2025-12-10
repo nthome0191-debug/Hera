@@ -1,6 +1,6 @@
 locals {
-  bucket_name      = "${var.project}-audit-logs"
-  trail_name       = var.cloudtrail_name != null ? var.cloudtrail_name : "${var.project}-trail"
+  bucket_name = "${var.project}-audit-logs-${var.cloudtrail_name}"
+  trail_name  = "${var.project}-trail-${var.cloudtrail_name}"
 }
 
 # ----------------------------
@@ -11,12 +11,11 @@ resource "aws_s3_bucket" "audit" {
   bucket = local.bucket_name
 
   tags = merge(var.tags, {
-    "Name"        = local.bucket_name
-    "Project"     = var.project
+    Name    = local.bucket_name
+    Project = var.project
   })
 }
 
-# Required ACL for CloudTrail
 resource "aws_s3_bucket_policy" "audit" {
   count  = var.create_cloudtrail ? 1 : 0
   bucket = aws_s3_bucket.audit[0].id
@@ -64,7 +63,8 @@ resource "aws_cloudtrail" "main" {
   }
 
   tags = merge(var.tags, {
-    "Name"        = local.trail_name
-    "Project"     = var.project
+    Name    = local.trail_name
+    Region = var.region
+    Project = var.project
   })
 }
