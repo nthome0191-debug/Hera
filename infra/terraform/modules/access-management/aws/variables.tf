@@ -79,25 +79,6 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-variable "verify_cloudtrail" {
-  description = "Verify CloudTrail is enabled for audit logging"
-  type        = bool
-  default     = true
-}
-
-variable "cloudtrail_name" {
-  type    = string
-  default = null
-
-  validation {
-    condition = (
-      var.verify_cloudtrail == false ||
-      var.cloudtrail_name != null
-    )
-    error_message = "verify_cloudtrail=true but no cloudtrail_name was provided."
-  }
-}
-
 
 variable "tags" {
   description = "Common tags for all resources"

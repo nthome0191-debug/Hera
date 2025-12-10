@@ -181,7 +181,6 @@ For access issues or questions:
 - Initial passwords expire after first login
 - Access keys should be rotated every 90 days
 - MFA is enforced - you cannot perform most operations without it
-- All actions are logged in CloudTrail
 - Your access is environment-specific: ${environment}
 
 ================================================================================

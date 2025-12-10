@@ -1,6 +1,6 @@
 locals {
-  bucket_name      = "${var.project}-${var.environment}-audit-logs"
-  trail_name       = var.cloudtrail_name != null ? var.cloudtrail_name : "${var.project}-${var.environment}-trail"
+  bucket_name      = "${var.project}-audit-logs"
+  trail_name       = var.cloudtrail_name != null ? var.cloudtrail_name : "${var.project}-trail"
 }
 
 # ----------------------------

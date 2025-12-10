@@ -23,8 +23,6 @@ This module provides comprehensive user access management with:
 
 ✅ Secrets in AWS Secrets Manager (not outputs)
 
-✅ CloudTrail verification
-
 ✅ Deny destructive operations on critical resources
 
 ✅ Deny IAM user/role management
@@ -139,7 +137,6 @@ module "access_management" {
   enforce_password_policy = true
   enforce_mfa            = true
   allowed_ip_ranges      = []  # Optional IP restriction
-  verify_cloudtrail      = true
 
   tags = {
     Project     = "hera"
@@ -204,7 +201,6 @@ provider "kubernetes" {
 | enforce_password_policy | Enforce strict password policy | bool | true | no |
 | enforce_mfa | Enforce MFA for all users | bool | true | no |
 | allowed_ip_ranges | List of allowed IP ranges for console access | list(string) | [] | no |
-| verify_cloudtrail | Verify CloudTrail is enabled | bool | true | no |
 | tags | Common tags for all resources | map(string) | {} | no |
 
 ## Outputs
@@ -292,7 +288,6 @@ aws iam remove-user-from-group \
 - ✅ MFA enforcement for sensitive operations
 - ✅ Strong password policy (16+ chars)
 - ✅ Credentials stored in Secrets Manager
-- ✅ CloudTrail verification
 - ✅ Deny destructive operations on critical resources
 - ✅ Environment-specific RBAC
 
@@ -404,7 +399,6 @@ terraform import 'module.access_management.aws_iam_user_group_membership.user_gr
 
 - **IAM:** Free (users, groups, policies)
 - **Secrets Manager:** ~$0.40/secret/month
-- **CloudTrail:** Included in first free trail
 - **Total:** ~$0.40-$2.00/user/month (depending on console vs programmatic access)
 
 ## Support

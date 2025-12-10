@@ -231,12 +231,6 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-variable "verify_cloudtrail" {
-  description = "Verify CloudTrail is enabled for audit logging"
-  type        = bool
-  default     = true
-}
-
 variable "create_cloudtrail" {
   type    = bool
   default = false

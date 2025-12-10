@@ -62,7 +62,6 @@ module "cloudtrail" {
   tags              = var.tags
 }
 
-
 module "access_management" {
   source = "../../modules/access-management/aws"
 
@@ -76,7 +75,6 @@ module "access_management" {
   enforce_password_policy = var.enforce_password_policy
   enforce_mfa             = var.enforce_mfa
   allowed_ip_ranges       = var.allowed_ip_ranges
-  verify_cloudtrail       = var.verify_cloudtrail
   tags                    = local.tags
 
   depends_on = [

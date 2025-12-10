@@ -22,17 +22,3 @@ resource "aws_iam_account_password_policy" "strict" {
   password_reuse_prevention      = 5
   hard_expiry                    = false
 }
-
-# ==============================================================================
-# CloudTrail Verification
-# ==============================================================================
-# Verify CloudTrail is enabled for audit logging
-# This is a safety check to ensure user actions are logged
-
-resource "null_resource" "warn_cloudtrail" {
-  count = (var.verify_cloudtrail && var.cloudtrail_name == null) ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "echo 'WARNING: CloudTrail verification enabled, but no CloudTrail name was supplied.'"
-  }
-}

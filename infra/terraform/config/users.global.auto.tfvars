@@ -43,4 +43,3 @@ users = {
 enforce_password_policy = true
 enforce_mfa             = true
 allowed_ip_ranges       = []
-verify_cloudtrail       = true

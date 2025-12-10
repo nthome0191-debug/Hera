@@ -43,5 +43,4 @@ module "aws_cluster" {
   enforce_password_policy = var.enforce_password_policy
   enforce_mfa             = var.enforce_mfa
   allowed_ip_ranges       = var.allowed_ip_ranges
-  verify_cloudtrail       = var.verify_cloudtrail
 }
