@@ -64,6 +64,10 @@ output "node_iam_role_arn" {
   value = module.eks_cluster.node_iam_role_arn
 }
 
+output "node_iam_role_name" {
+  value = module.eks_cluster.node_iam_role_name
+}
+
 output "oidc_provider_arn" {
   value = module.eks_cluster.oidc_provider_arn
 }

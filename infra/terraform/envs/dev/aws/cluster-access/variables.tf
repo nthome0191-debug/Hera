@@ -16,16 +16,6 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "cluster_name" {
-  description = "EKS cluster name to configure access for"
-  type        = string
-}
-
-variable "node_role_name" {
-  description = "EKS node IAM role name"
-  type        = string
-}
-
 variable "users" {
   description = "Map of users to their role assignments (from global user list)"
   type = map(object({
