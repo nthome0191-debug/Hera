@@ -1,6 +1,7 @@
 variable "region" {
-  description = "AWS region for this environment"
+  description = "AWS region (IAM is global, but required for AWS provider)"
   type        = string
+  default     = "us-east-1"
 }
 
 variable "aws_account_id" {
@@ -12,12 +13,6 @@ variable "project" {
   description = "Project name (for tagging and naming)"
   type        = string
   default     = "hera"
-}
-
-variable "environment" {
-  description = "Environment name (dev/staging/prod)"
-  type        = string
-  default     = "dev"
 }
 
 variable "enforce_password_policy" {
@@ -50,14 +45,4 @@ variable "users" {
     environments        = list(string)
   }))
   default = {}
-}
-
-variable "cluster_name" {
-  type = string
-  description = "Eks cluster name"
-}
-
-variable "node_role_name" {
-  type = string
-  description = "Eks node role name"
 }

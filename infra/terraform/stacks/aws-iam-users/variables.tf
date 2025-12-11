@@ -1,5 +1,5 @@
 variable "region" {
-  description = "AWS region for this environment"
+  description = "AWS region for IAM resources (global, but required for provider)"
   type        = string
 }
 
@@ -12,12 +12,6 @@ variable "project" {
   description = "Project name (for tagging and naming)"
   type        = string
   default     = "hera"
-}
-
-variable "environment" {
-  description = "Environment name (dev/staging/prod)"
-  type        = string
-  default     = "dev"
 }
 
 variable "users" {
@@ -50,16 +44,4 @@ variable "allowed_ip_ranges" {
   description = "List of allowed IP ranges for console access (empty = no restriction)"
   type        = list(string)
   default     = []
-}
-
-variable "cluster_name" {
-  type        = string
-  description = "EKS cluster name (optional - if not provided, K8s RBAC setup is skipped)"
-  default     = ""
-}
-
-variable "node_role_name" {
-  type        = string
-  description = "EKS node role name (optional - required if cluster_name is provided)"
-  default     = ""
 }

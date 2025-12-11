@@ -4,32 +4,18 @@ locals {
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
-
-  # Determine if K8s RBAC should be configured
-  configure_k8s_rbac = var.cluster_name != "" && var.node_role_name != ""
 }
 
 # ==============================================================================
-# IAM User Management (Global, AWS-Specific)
+# Kubernetes RBAC (Cloud-Agnostic)
 # ==============================================================================
-
-module "iam_users" {
-  source = "../../modules/iam-user-management/aws"
-
-  project                 = var.project
-  users                   = var.users
-  enforce_password_policy = var.enforce_password_policy
-  enforce_mfa             = var.enforce_mfa
-  allowed_ip_ranges       = var.allowed_ip_ranges
-  tags                    = local.tags
-}
-
-# ==============================================================================
-# Kubernetes RBAC (Cloud-Agnostic, Optional)
+# Creates ClusterRoles and ClusterRoleBindings with environment-aware permissions.
+# Same user list, but permissions differ by environment:
+# - dev: Developers & Security Engineers get full CRUD
+# - staging/prod: Developers & Security Engineers get read-only
 # ==============================================================================
 
 module "kubernetes_rbac" {
-  count  = local.configure_k8s_rbac ? 1 : 0
   source = "../../modules/kubernetes-rbac"
 
   environment = var.environment
@@ -38,11 +24,13 @@ module "kubernetes_rbac" {
 }
 
 # ==============================================================================
-# Cluster Auth Mapping - AWS EKS (EKS-Specific, Optional)
+# Cluster Auth Mapping - AWS EKS (EKS-Specific)
+# ==============================================================================
+# Maps IAM users to Kubernetes groups in the aws-auth ConfigMap.
+# Requires IAM user ARNs from the global IAM user management.
 # ==============================================================================
 
 module "eks_auth_mapping" {
-  count  = local.configure_k8s_rbac ? 1 : 0
   source = "../../modules/cluster-auth-mapping/aws-eks"
 
   cluster_name   = var.cluster_name
@@ -50,7 +38,7 @@ module "eks_auth_mapping" {
   environment    = var.environment
   region         = var.region
   project        = var.project
-  iam_user_arns  = module.iam_users.iam_user_arns
+  iam_user_arns  = var.iam_user_arns
   users          = var.users
   tags           = local.tags
 }
