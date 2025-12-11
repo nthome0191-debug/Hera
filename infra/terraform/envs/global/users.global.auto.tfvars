@@ -1,7 +1,7 @@
 users = {
-  "infra_manager_1" = {
-    email               = "infra_manager_1@example.com"
-    full_name           = "Infra Manager 1"
+  "infra_manager_11" = {
+    email               = "infra_manager_11@example.com"
+    full_name           = "Infra Manager 1 1"
     roles               = ["infra-manager"]
     require_mfa         = true
     console_access      = true
@@ -9,9 +9,9 @@ users = {
     environments        = ["dev", "staging", "prod"]
   }
 
-  "infra_member_2" = {
-    email               = "infra_member_1@example.com"
-    full_name           = "Infra member 2"
+  "infra_member_22" = {
+    email               = "infra_member_22@example.com"
+    full_name           = "Infra member 2 2"
     roles               = ["infra-member"]
     require_mfa         = true
     console_access      = true
@@ -19,9 +19,9 @@ users = {
     environments        = ["dev", "staging", "prod"]
   }
 
-  "dev1" = {
-    email               = "dev1@example.com"
-    full_name           = "Dev One"
+  "dev11" = {
+    email               = "dev11@example.com"
+    full_name           = "Dev 1 1"
     roles               = ["developer"]
     require_mfa         = true
     console_access      = true
@@ -29,9 +29,9 @@ users = {
     environments        = ["dev", "staging"]
   }
   
-  "security2" = {
-    email               = "sec2@example.com"
-    full_name           = "Security 2"
+  "security22" = {
+    email               = "sec22@example.com"
+    full_name           = "Security 2 2"
     roles               = ["developer"]
     require_mfa         = true
     console_access      = true

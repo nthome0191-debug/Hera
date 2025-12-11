@@ -9,43 +9,11 @@ The CLI is filesystem-driven, supports hybrid positional + flags, and automatica
 
 # 🚀 Features
 
-- Hybrid command syntax (positional arguments and flags)
-- Auto-detects repository root
-- Beautiful colored output with banners
-- Automatic Terraform path resolution
-- Auto-approve `apply` and `destroy`
+- Multi-env ready (dev, staging, prod)
 - Multi-cloud ready (AWS, Azure, GCP)
-- Zero hardcoded dependencies (Terraform controls actual module dependencies)
-
----
-
-# 📁 Repository Structure (relevant parts)
-
-```
-infra/terraform
-└── envs
-    ├── bootstrap
-    │   └── aws
-    │   └── azure
-    │   └── gcp
-    ├── dev
-    │   ├── aws
-    │   │   └── cluster
-    │   ├── azure
-    │   │   └── cluster
-    │   ├── gcp
-    │   │   └── cluster
-    │   └── platform
-    └── staging
-        ├── aws
-        ├── azure
-        └── gcp
-    └── prod
-        ├── aws
-        ├── azure
-        └── gcp
-```
----
+- Auto-detects repository root
+- Automatic Terraform path resolution
+- Hybrid command syntax (positional arguments and flags)
 
 # 🧩 Command Resolution Logic
 
