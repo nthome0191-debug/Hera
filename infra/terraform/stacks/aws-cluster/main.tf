@@ -53,7 +53,7 @@ module "eks_cluster" {
 }
 
 module "cloudtrail" {
-  source = "../../modules/cloudtrail"
+  source = "../../modules/cloud-activity/aws/cloudtrail"
 
   region = var.region
   create_cloudtrail = var.create_cloudtrail
