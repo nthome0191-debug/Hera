@@ -1,5 +1,5 @@
 module "local_cluster" {
-  source = "../../../stacks/local-cluster"
+  source = "../../../../stacks/local-cluster"
 
   project         = var.project
   environment     = var.environment

@@ -1,5 +1,5 @@
 module "platform" {
-  source = "../../../stacks/platform"
+  source = "../../../../stacks/platform"
 
   project            = var.project
   environment        = var.environment

@@ -1,7 +1,7 @@
 package main
 
-// import "Hera/cli/infractl/cmd"
+import "hera/cli/infractl/cmd"
 
-// func main() {
-//     cmd.Execute()
-// }
+func main() {
+	cmd.Execute()
+}
