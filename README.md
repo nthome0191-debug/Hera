@@ -153,6 +153,25 @@ Includes:
 
 ---
 
+## Fork-Friendly Design
+
+This project is designed to be easily customized for your organization. All "Hera" references can be automatically replaced with your project name:
+
+```bash
+./scripts/setup-fork.sh
+```
+
+This updates:
+- Go module name and imports
+- Terraform variables and resource names
+- Kubernetes RBAC groups and labels
+- CLI descriptions
+- AWS resource naming patterns
+
+See [docs/FORKING_GUIDE.md](docs/FORKING_GUIDE.md) for complete instructions.
+
+---
+
 ## License
 
 TBD (likely Apache-2.0 or MIT)

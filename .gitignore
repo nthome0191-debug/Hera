@@ -75,6 +75,7 @@ logs/
 # Backup files
 *.bak
 *.tmp
+project.yaml.backup
 
 # OS files
 Thumbs.db

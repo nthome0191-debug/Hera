@@ -1,0 +1,27 @@
+# Project Configuration
+# This file defines the core identity of your infrastructure project.
+# When forking this project, update these values to match your organization.
+
+project:
+  # The name of your infrastructure project (lowercase, no spaces)
+  # Used for: Go module name, Terraform resources, Kubernetes groups, etc.
+  name: "hera"
+
+  # Display name for CLI and documentation
+  display_name: "Hera"
+
+  # Organization name for licenses and documentation
+  organization: "Hera Contributors"
+
+# Kubernetes RBAC group prefix
+# Groups will be named: {project.name}:infra-managers, {project.name}:developers, etc.
+kubernetes:
+  rbac_group_prefix: "hera"
+  platform_label: "hera-platform"
+
+# AWS resource naming patterns
+aws:
+  # Pattern for DynamoDB lock tables: {prefix}-{env}-tf-lock
+  dynamodb_table_prefix: "hera"
+  # Pattern for S3 state buckets: {prefix}-{env}-tf-state
+  s3_bucket_prefix: "hera"

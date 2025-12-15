@@ -1,5 +1,5 @@
 ================================================================================
-Welcome to Hera Infrastructure Access!
+Welcome to ${upper(project)} Infrastructure Access!
 ================================================================================
 
 Your account has been created in the ${environment} environment.
@@ -174,7 +174,7 @@ Problem: Access key not working
 For access issues or questions:
   - DevOps Team: devops@company.com
   - Security Team: security@company.com
-  - Documentation: https://github.com/yourorg/hera/docs
+  - Documentation: https://github.com/yourorg/${project}/docs
 
 == Important Notes ==
 

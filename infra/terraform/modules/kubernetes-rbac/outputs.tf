@@ -5,10 +5,10 @@
 output "kubernetes_rbac_groups" {
   description = "Kubernetes RBAC groups created"
   value = {
-    infra-managers     = "hera:infra-managers"
-    infra-members      = "hera:infra-members"
-    developers         = "hera:developers"
-    security-engineers = "hera:security-engineers"
+    infra-managers     = "${var.project}:infra-managers"
+    infra-members      = "${var.project}:infra-members"
+    developers         = "${var.project}:developers"
+    security-engineers = "${var.project}:security-engineers"
   }
 }
 

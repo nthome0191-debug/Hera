@@ -32,7 +32,7 @@ resource "kubernetes_cluster_role_binding_v1" "infra_manager" {
 
   subject {
     kind      = "Group"
-    name      = "hera:infra-managers"
+    name      = "${var.project}:infra-managers"
     api_group = "rbac.authorization.k8s.io"
   }
 }
@@ -94,7 +94,7 @@ resource "kubernetes_cluster_role_binding_v1" "infra_member" {
 
   subject {
     kind      = "Group"
-    name      = "hera:infra-members"
+    name      = "${var.project}:infra-members"
     api_group = "rbac.authorization.k8s.io"
   }
 }
@@ -183,7 +183,7 @@ resource "kubernetes_cluster_role_binding_v1" "developer" {
 
   subject {
     kind      = "Group"
-    name      = "hera:developers"
+    name      = "${var.project}:developers"
     api_group = "rbac.authorization.k8s.io"
   }
 }
@@ -272,7 +272,7 @@ resource "kubernetes_cluster_role_binding_v1" "security_engineer" {
 
   subject {
     kind      = "Group"
-    name      = "hera:security-engineers"
+    name      = "${var.project}:security-engineers"
     api_group = "rbac.authorization.k8s.io"
   }
 }

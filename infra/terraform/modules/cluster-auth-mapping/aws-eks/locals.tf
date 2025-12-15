@@ -3,20 +3,20 @@
 # ==============================================================================
 
 locals {
-  # Map Hera roles to Kubernetes RBAC groups
+  # Map project roles to Kubernetes RBAC groups
   role_to_k8s_groups = {
     "infra-manager" = [
-      "hera:infra-managers",
+      "${var.project}:infra-managers",
       "system:masters", # Cluster admin access
     ]
     "infra-member" = [
-      "hera:infra-members",
+      "${var.project}:infra-members",
     ]
     "developer" = [
-      "hera:developers",
+      "${var.project}:developers",
     ]
     "security-engineer" = [
-      "hera:security-engineers",
+      "${var.project}:security-engineers",
     ]
   }
 
