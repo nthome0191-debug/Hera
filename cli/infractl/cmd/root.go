@@ -7,13 +7,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var envKey string = "env"
+
 var rootCmd = &cobra.Command{
 	Use:   "infractl",
 	Short: "Hera infrastructure CLI",
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

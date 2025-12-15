@@ -19,7 +19,7 @@ func ResolveModule(tm *TargetModule) error {
 		return fmt.Errorf("failed to get working directory: %w", err)
 	}
 
-	envsRoot, err := findEnvsRoot(startDir)
+	envsRoot, err := FindEnvsRoot(startDir)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func ResolveModule(tm *TargetModule) error {
 	return nil
 }
 
-func findEnvsRoot(start string) (string, error) {
+func FindEnvsRoot(start string) (string, error) {
 	dir := start
 	for {
 		envsPath := filepath.Join(dir, "infra", "terraform", "envs")

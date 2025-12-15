@@ -24,5 +24,6 @@ var planCmd = &cobra.Command{
 
 func init() {
 	addTerraformFlags(planCmd, &planTm)
+	planCmd.ValidArgsFunction = completeModulePath
 	rootCmd.AddCommand(planCmd)
 }
