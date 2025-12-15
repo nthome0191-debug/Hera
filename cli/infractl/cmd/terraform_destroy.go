@@ -24,5 +24,6 @@ var destroyCmd = &cobra.Command{
 
 func init() {
 	addTerraformFlags(destroyCmd, &destroyTm)
+	planCmd.ValidArgsFunction = completeModulePath
 	rootCmd.AddCommand(destroyCmd)
 }
