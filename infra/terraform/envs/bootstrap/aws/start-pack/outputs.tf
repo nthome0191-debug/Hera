@@ -25,3 +25,14 @@ output "backend_config" {
     encrypt        = true
   }
 }
+
+output "backend_config_file" {
+  description = "Content for a .tfbackend file if the CLI wants to generate one"
+  sensitive   = false
+  value       = <<-EOT
+    bucket         = "${module.bootstrap.bucket_name}"
+    region         = "${var.region}"
+    dynamodb_table = "${module.bootstrap.lock_table_name}"
+    encrypt        = true
+  EOT
+}
