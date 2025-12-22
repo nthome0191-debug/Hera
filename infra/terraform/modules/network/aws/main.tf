@@ -9,6 +9,15 @@ terraform {
   }
 }
 
+# Multi-cluster support: generate cluster tags dynamically
+locals {
+  # Support both legacy single cluster_name and new multi-cluster cluster_names
+  all_cluster_names = var.cluster_names != [] ? var.cluster_names : (var.cluster_name != "" ? [var.cluster_name] : [])
+
+  # Generate kubernetes.io/cluster/ tags for all clusters
+  cluster_tags = { for name in local.all_cluster_names : "kubernetes.io/cluster/${name}" => "shared" }
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = var.enable_dns_hostnames
@@ -19,9 +28,7 @@ resource "aws_vpc" "main" {
     {
       Name = "${var.tags["Project"]}-${var.tags["Environment"]}-vpc"
     },
-    var.cluster_name != "" ? {
-      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    } : {}
+    local.cluster_tags
   )
 }
 
@@ -47,13 +54,11 @@ resource "aws_subnet" "public" {
   tags = merge(
     var.tags,
     {
-      Name = "${var.tags["Project"]}-${var.tags["Environment"]}-public-${var.availability_zones[count.index]}"
-      Type = "public"
+      Name                     = "${var.tags["Project"]}-${var.tags["Environment"]}-public-${var.availability_zones[count.index]}"
+      Type                     = "public"
+      "kubernetes.io/role/elb" = "1"
     },
-    var.cluster_name != "" ? {
-      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-      "kubernetes.io/role/elb"                    = "1"
-    } : {}
+    local.cluster_tags
   )
 }
 
@@ -62,18 +67,16 @@ resource "aws_subnet" "private" {
 
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = var.availability_zones[count.index]
+  availability_zone = var.availability_zones[count.index % length(var.availability_zones)]
 
   tags = merge(
     var.tags,
     {
-      Name = "${var.tags["Project"]}-${var.tags["Environment"]}-private-${var.availability_zones[count.index]}"
-      Type = "private"
+      Name                              = "${var.tags["Project"]}-${var.tags["Environment"]}-private-${var.availability_zones[count.index % length(var.availability_zones)]}-${count.index}"
+      Type                              = "private"
+      "kubernetes.io/role/internal-elb" = "1"
     },
-    var.cluster_name != "" ? {
-      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-      "kubernetes.io/role/internal-elb"           = "1"
-    } : {}
+    local.cluster_tags
   )
 }
 
@@ -159,7 +162,8 @@ resource "aws_route_table_association" "private" {
   count = length(var.private_subnet_cidrs)
 
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index].id
+  # Use single route table if single_nat_gateway, otherwise map to AZ-specific route table using modulo
+  route_table_id = var.single_nat_gateway ? aws_route_table.private[0].id : aws_route_table.private[count.index % length(var.availability_zones)].id
 }
 
 resource "aws_vpn_gateway" "main" {
@@ -176,6 +180,13 @@ resource "aws_vpn_gateway" "main" {
 }
 
 locals {
+  # For VPC endpoints, we need only one subnet per AZ (not all subnets)
+  # Select first subnet for each unique AZ
+  unique_az_subnets = [
+    for idx in range(length(var.availability_zones)) :
+    aws_subnet.private[idx].id
+  ]
+
   all_vpc_endpoint_services = {
     s3 = {
       service_name = "com.amazonaws.${var.region}.s3"
@@ -185,37 +196,37 @@ locals {
     ecr_api = {
       service_name      = "com.amazonaws.${var.region}.ecr.api"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
     ecr_dkr = {
       service_name      = "com.amazonaws.${var.region}.ecr.dkr"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
     ec2 = {
       service_name      = "com.amazonaws.${var.region}.ec2"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
     ec2messages = {
       service_name      = "com.amazonaws.${var.region}.ec2messages"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
     sts = {
       service_name      = "com.amazonaws.${var.region}.sts"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
     logs = {
       service_name      = "com.amazonaws.${var.region}.logs"
       service_type      = "Interface"
-      subnet_ids        = aws_subnet.private[*].id
+      subnet_ids        = local.unique_az_subnets
       security_group_ids = var.enable_vpc_endpoints ? [aws_security_group.vpc_endpoints[0].id] : []
     }
   }

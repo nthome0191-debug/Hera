@@ -80,10 +80,6 @@ resource "aws_security_group" "cluster" {
       Name = "${local.cluster_name_with_suffix}-eks-cluster-sg"
     }
   )
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_security_group_rule" "cluster_egress" {
@@ -208,10 +204,6 @@ resource "aws_security_group" "node" {
       "kubernetes.io/cluster/${local.cluster_name_with_suffix}" = "owned"
     }
   )
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_security_group_rule" "node_ingress_self" {
@@ -242,6 +234,19 @@ resource "aws_security_group_rule" "node_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.node.id
   description       = "Allow all outbound traffic"
+}
+
+# Cross-cluster communication: Allow pods from peer cluster nodes
+resource "aws_security_group_rule" "node_ingress_peer_clusters" {
+  for_each = toset(var.peer_cluster_security_group_ids)
+
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "-1"
+  source_security_group_id = each.value
+  security_group_id        = aws_security_group.node.id
+  description              = "Allow pod communication from peer cluster nodes"
 }
 
 resource "aws_security_group_rule" "cluster_ingress_node_https" {
@@ -315,13 +320,28 @@ resource "aws_launch_template" "node" {
   }
 }
 
+# Data source to get subnet details for AZ filtering
+data "aws_subnet" "private" {
+  for_each = toset(var.private_subnet_ids)
+  id       = each.value
+}
+
+# Locals for AZ-aware subnet filtering
+locals {
+  # Filter subnets based on deployment mode
+  node_subnet_ids = var.deployment_mode == "single-az" && var.primary_az != "" ? [
+    for subnet_id in var.private_subnet_ids :
+    subnet_id if data.aws_subnet.private[subnet_id].availability_zone == var.primary_az
+  ] : var.private_subnet_ids
+}
+
 resource "aws_eks_node_group" "main" {
   for_each = var.node_groups
 
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${local.cluster_name_with_suffix}-${each.key}"
   node_role_arn   = aws_iam_role.node.arn
-  subnet_ids      = var.private_subnet_ids
+  subnet_ids      = local.node_subnet_ids
 
   scaling_config {
     desired_size = each.value.desired_size
@@ -344,7 +364,10 @@ resource "aws_eks_node_group" "main" {
   labels = merge(
     each.value.labels,
     {
-      "node-group" = each.key
+      "node-group"                   = each.key
+      "cluster-type"                 = var.cluster_type
+      "hera.io/deployment-mode"      = var.deployment_mode
+      "topology.kubernetes.io/zone"  = var.deployment_mode == "single-az" && var.primary_az != "" ? var.primary_az : "multi-az"
     }
   )
 
@@ -574,6 +597,59 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
 }
 
 data "aws_caller_identity" "current" {}
+
+# Cleanup provisioner to wait for ENIs before destroying security groups
+# This runs as part of the EKS cluster destroy to ensure all ENIs are cleaned up
+# By depending on the security groups, this resource is destroyed BEFORE the SGs,
+# allowing the destroy provisioner to wait for ENI cleanup
+resource "terraform_data" "wait_for_eni_cleanup" {
+  input = {
+    cluster_sg_id = aws_security_group.cluster.id
+    node_sg_id    = aws_security_group.node.id
+    region        = var.region
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Waiting for ENIs associated with security groups to be cleaned up..."
+
+      # Wait for ENIs to be cleaned up (up to 5 minutes)
+      for i in $(seq 1 60); do
+        cluster_enis=$(aws ec2 describe-network-interfaces \
+          --region ${self.input.region} \
+          --filters "Name=group-id,Values=${self.input.cluster_sg_id}" \
+          --query 'length(NetworkInterfaces)' \
+          --output text 2>/dev/null || echo "0")
+
+        node_enis=$(aws ec2 describe-network-interfaces \
+          --region ${self.input.region} \
+          --filters "Name=group-id,Values=${self.input.node_sg_id}" \
+          --query 'length(NetworkInterfaces)' \
+          --output text 2>/dev/null || echo "0")
+
+        total=$((cluster_enis + node_enis))
+
+        if [ "$total" = "0" ]; then
+          echo "All ENIs cleaned up successfully"
+          exit 0
+        fi
+
+        echo "Waiting for $total ENIs to be deleted... (attempt $i/60)"
+        sleep 5
+      done
+
+      echo "Warning: Some ENIs may still exist, but continuing with destroy"
+    EOT
+  }
+
+  depends_on = [
+    aws_security_group.cluster,
+    aws_security_group.node,
+    aws_eks_node_group.main,
+    aws_eks_cluster.main
+  ]
+}
 
 resource "null_resource" "update_kubeconfig" {
   depends_on = [aws_eks_cluster.main]

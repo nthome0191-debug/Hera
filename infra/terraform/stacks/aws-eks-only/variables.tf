@@ -1,5 +1,11 @@
-variable "cluster_name" {
-  description = "Name of the EKS cluster"
+# Global variables
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "project" {
+  description = "Project name"
   type        = string
 }
 
@@ -8,17 +14,43 @@ variable "environment" {
   type        = string
 }
 
-variable "region" {
-  description = "AWS region"
+# Cluster configuration
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
   type        = string
 }
 
+variable "cluster_type" {
+  description = "Type of cluster: apps, pci, analytics, infra"
+  type        = string
+  default     = "apps"
+}
+
+variable "deployment_mode" {
+  description = "AZ deployment mode: single-az or multi-az"
+  type        = string
+  default     = "multi-az"
+}
+
+variable "primary_az" {
+  description = "Primary AZ for single-az deployments (e.g., us-east-1a)"
+  type        = string
+  default     = ""
+}
+
 variable "kubernetes_version" {
-  description = "Kubernetes version to use for the EKS cluster"
+  description = "Kubernetes version"
   type        = string
   default     = "1.32"
 }
 
+variable "kubeconfig_context_name" {
+  description = "Custom kubeconfig context name"
+  type        = string
+  default     = ""
+}
+
+# Network (from existing VPC)
 variable "vpc_id" {
   description = "VPC ID where EKS cluster will be deployed"
   type        = string
@@ -35,6 +67,7 @@ variable "public_subnet_ids" {
   default     = []
 }
 
+# API endpoints
 variable "enable_private_endpoint" {
   description = "Enable private API server endpoint"
   type        = bool
@@ -53,24 +86,7 @@ variable "authorized_networks" {
   default     = ["0.0.0.0/0"]
 }
 
-variable "enable_irsa" {
-  description = "Enable IAM Roles for Service Accounts (IRSA)"
-  type        = bool
-  default     = true
-}
-
-variable "cluster_log_types" {
-  description = "List of control plane log types to enable"
-  type        = list(string)
-  default     = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-}
-
-variable "cluster_log_retention_days" {
-  description = "CloudWatch log retention in days for EKS control plane logs"
-  type        = number
-  default     = 7
-}
-
+# Node groups
 variable "node_groups" {
   description = "Map of EKS node group configurations"
   type = map(object({
@@ -90,20 +106,33 @@ variable "node_groups" {
   default = {}
 }
 
-variable "enable_cluster_encryption" {
-  description = "Enable envelope encryption of Kubernetes secrets using KMS"
+# Cluster features
+variable "enable_cluster_autoscaler" {
+  description = "Enable IAM policy for Cluster Autoscaler"
   type        = bool
   default     = false
 }
 
-variable "cluster_encryption_kms_key_id" {
-  description = "KMS key ID for cluster encryption (if enable_cluster_encryption is true)"
-  type        = string
-  default     = ""
+variable "cluster_log_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+  default     = 7
+}
+
+variable "enable_irsa" {
+  description = "Enable IAM Roles for Service Accounts"
+  type        = bool
+  default     = true
+}
+
+variable "use_random_suffix" {
+  description = "Add random suffix to EKS resources"
+  type        = bool
+  default     = true
 }
 
 variable "eks_addons" {
-  description = "EKS addons configuration. Each addon can be enabled/disabled individually with specific versions"
+  description = "EKS addons configuration"
   type = object({
     vpc_cni = object({
       enabled                  = bool
@@ -133,84 +162,47 @@ variable "eks_addons" {
   default = {
     vpc_cni = {
       enabled                  = true
-      version                  = "v1.18.1-eksbuild.3"
+      version                  = "v1.20.5-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = ""
     }
     kube_proxy = {
       enabled                  = true
-      version                  = "v1.32.0-eksbuild.5"
+      version                  = "v1.32.9-eksbuild.2"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = ""
     }
     coredns = {
       enabled                  = true
-      version                  = "v1.11.3-eksbuild.2"
+      version                  = "v1.11.4-eksbuild.24"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = ""
     }
     aws_ebs_csi_driver = {
       enabled                  = true
-      version                  = "v1.37.0-eksbuild.1"
+      version                  = "v1.53.0-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = ""
     }
   }
 }
 
-variable "enable_cluster_autoscaler" {
-  description = "Enable IAM policy for Cluster Autoscaler"
+# Encryption (for PCI clusters)
+variable "enable_cluster_encryption" {
+  description = "Enable envelope encryption of Kubernetes secrets using KMS"
   type        = bool
   default     = false
 }
 
-variable "use_random_suffix" {
-  description = "Add random suffix to EKS resources to avoid naming conflicts during destroy/recreate cycles"
-  type        = bool
-  default     = true
-}
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default     = {}
-}
-
-variable "kubeconfig_context_name" {
-  description = "If set, rename the kubeconfig context to this name. If empty, no renaming occurs."
+variable "cluster_encryption_kms_key_id" {
+  description = "KMS key ID for cluster encryption"
   type        = string
   default     = ""
 }
 
-# Multi-cluster variables
-variable "cluster_type" {
-  description = "Type of cluster: apps, pci, analytics, infra"
-  type        = string
-  default     = "apps"
-  validation {
-    condition     = contains(["apps", "pci", "analytics", "infra"], var.cluster_type)
-    error_message = "cluster_type must be one of: apps, pci, analytics, infra"
-  }
-}
-
-variable "deployment_mode" {
-  description = "AZ deployment mode: single-az or multi-az"
-  type        = string
-  default     = "multi-az"
-  validation {
-    condition     = contains(["single-az", "multi-az"], var.deployment_mode)
-    error_message = "deployment_mode must be 'single-az' or 'multi-az'"
-  }
-}
-
-variable "primary_az" {
-  description = "Primary AZ for single-az deployments (e.g., us-east-1a)"
-  type        = string
-  default     = ""
-}
-
+# Cross-cluster communication
 variable "peer_cluster_security_group_ids" {
-  description = "List of node security group IDs from other clusters in the same VPC for cross-cluster pod communication"
+  description = "List of node security group IDs from other clusters for cross-cluster communication"
   type        = list(string)
   default     = []
 }

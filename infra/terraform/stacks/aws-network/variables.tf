@@ -1,8 +1,20 @@
+# Global variables
 variable "region" {
   description = "AWS region"
   type        = string
 }
 
+variable "project" {
+  description = "Project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+}
+
+# Network variables
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
@@ -35,26 +47,8 @@ variable "single_nat_gateway" {
   default     = false
 }
 
-variable "enable_dns_hostnames" {
-  description = "Enable DNS hostnames in the VPC"
-  type        = bool
-  default     = true
-}
-
-variable "enable_dns_support" {
-  description = "Enable DNS support in the VPC"
-  type        = bool
-  default     = true
-}
-
-variable "enable_vpn_gateway" {
-  description = "Enable VPN Gateway"
-  type        = bool
-  default     = false
-}
-
 variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services (S3, ECR, etc.)"
+  description = "Enable VPC endpoints for AWS services"
   type        = bool
   default     = false
 }
@@ -65,27 +59,20 @@ variable "vpc_endpoints" {
   default     = []
 }
 
-variable "cluster_name" {
-  description = "EKS cluster name for resource tagging (DEPRECATED: use cluster_names for multi-cluster)"
-  type        = string
-  default     = ""
-}
-
-# Multi-cluster variables
 variable "cluster_names" {
-  description = "List of EKS cluster names that will use this VPC (for subnet tagging)"
+  description = "List of EKS cluster names that will use this VPC"
   type        = list(string)
   default     = []
 }
 
 variable "enable_flow_logs" {
-  description = "Enable VPC Flow Logs to CloudWatch"
+  description = "Enable VPC Flow Logs"
   type        = bool
   default     = false
 }
 
 variable "flow_logs_retention_days" {
-  description = "CloudWatch log retention in days for VPC Flow Logs (1, 3, 5, 7, 14, 30, 60, 90, etc.)"
+  description = "CloudWatch log retention in days for VPC Flow Logs"
   type        = number
   default     = 1
 }
@@ -94,10 +81,4 @@ variable "flow_logs_traffic_type" {
   description = "Type of traffic to log: ACCEPT, REJECT, or ALL"
   type        = string
   default     = "ALL"
-}
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default     = {}
 }
