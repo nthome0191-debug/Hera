@@ -20,15 +20,23 @@ terraform {
 
 provider "aws" {
   region = var.region
+  default_tags {
+    tags = {
+      Project     = var.project
+      Environment = var.environment
+      ManagedBy   = "Hera/Terraform"
+    }
+  }
 }
 
 locals {
   project     = var.project
   environment = var.environment
+  suffix = var.aws_account_id
 
-  bucket_name     = "${local.project}-${local.environment}-tf-state-${var.aws_account_id}"
-  lock_table_name = "${local.project}-${local.environment}-tf-lock-${var.aws_account_id}"
-  admin_role_name = "${local.project}-${local.environment}-admin-${var.aws_account_id}"
+  bucket_name     = "${local.project}-${local.environment}-tf-state-${local.suffix}"
+  lock_table_name = "${local.project}-${local.environment}-tf-lock-${local.suffix}"
+  admin_role_name = "${local.project}-${local.environment}-admin-${local.suffix}"
 }
 
 module "bootstrap" {

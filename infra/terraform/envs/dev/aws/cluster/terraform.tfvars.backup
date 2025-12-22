@@ -1,0 +1,90 @@
+region      = "us-east-1"
+project     = "hera"
+environment = "dev"
+
+# network vars
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["us-east-1a", "us-east-1b"]
+private_subnet_cidrs = ["10.0.0.0/20", "10.0.16.0/20"]
+public_subnet_cidrs  = ["10.0.32.0/20", "10.0.48.0/20"]
+
+enable_nat_gateway   = true
+single_nat_gateway   = true
+
+enable_vpc_endpoints = true
+vpc_endpoints        = ["s3", "ecr_api", "ecr_dkr", "sts", "logs"]
+
+enable_flow_logs         = true
+flow_logs_retention_days = 1
+flow_logs_traffic_type   = "ALL"
+
+#eks vars
+
+cluster_name       = "hera-dev-eks"
+kubernetes_version = "1.32"
+
+enable_private_endpoint = true
+enable_public_endpoint  = true
+authorized_networks     = ["0.0.0.0/0"]   # Restrict in production
+
+node_groups = {
+  general = {
+    desired_size  = 2
+    min_size      = 1
+    max_size      = 4
+    instance_types = [
+      "t3.medium",
+      "t3a.medium",
+      "t3.small",
+      "t3.large",
+      "t3a.large",
+      "t2.medium"
+    ]
+    capacity_type = "SPOT"
+    disk_size     = 30
+
+    labels = {
+      workload = "general"
+    }
+
+    taints = []
+  }
+}
+
+enable_cluster_autoscaler  = false
+cluster_log_retention_days = 1
+enable_irsa                = true
+use_random_suffix          = true
+
+eks_addons = {
+  vpc_cni = {
+    enabled                  = true
+    version                  = "v1.20.5-eksbuild.1"
+    resolve_conflicts        = "OVERWRITE"
+    service_account_role_arn = ""
+  }
+
+  kube_proxy = {
+    enabled                  = true
+    version                  = "v1.32.9-eksbuild.2"
+    resolve_conflicts        = "OVERWRITE"
+    service_account_role_arn = ""
+  }
+
+  coredns = {
+    enabled                  = true
+    version                  = "v1.11.4-eksbuild.24"
+    resolve_conflicts        = "OVERWRITE"
+    service_account_role_arn = ""
+  }
+
+  aws_ebs_csi_driver = {
+    enabled                  = true
+    version                  = "v1.53.0-eksbuild.1"
+    resolve_conflicts        = "OVERWRITE"
+    service_account_role_arn = ""
+  }
+}
+
+kubeconfig_context_name = "hera-dev"
+# create_cloudtrail = true

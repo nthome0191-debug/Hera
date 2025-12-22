@@ -28,6 +28,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "enc" {
     apply_server_side_encryption_by_default {
       sse_algorithm = var.bucket_sse_algo
     }
+    bucket_key_enabled = true
   }
 }
 
@@ -75,4 +76,30 @@ resource "aws_iam_role_policy_attachment" "admin_role_attach" {
   count = var.create_admin_role ? 1 : 0
   role       = aws_iam_role.admin_role[0].name
   policy_arn = var.admin_policy_arn
+}
+
+resource "aws_s3_bucket_policy" "force_ssl" {
+  bucket = aws_s3_bucket.tf_state.id
+  policy = data.aws_iam_policy_document.force_ssl.json
+}
+
+data "aws_iam_policy_document" "force_ssl" {
+  statement {
+    sid     = "AllowSSLRequestsOnly"
+    effect  = "Deny"
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.tf_state.arn,
+      "${aws_s3_bucket.tf_state.arn}/*"
+    ]
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+  }
 }

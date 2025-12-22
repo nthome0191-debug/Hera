@@ -14,7 +14,7 @@ locals {
 # ==============================================================================
 
 module "iam_users" {
-  source = "../../modules/iam-user-management/aws"
+  source = "../../modules/user-management/aws"
 
   project                 = var.project
   users                   = var.users
