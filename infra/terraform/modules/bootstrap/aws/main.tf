@@ -9,16 +9,21 @@ terraform {
   }
 }
 
-resource "aws_s3_bucket" "tf_state" {
-  bucket        = var.bucket_name
-  force_destroy = var.bucket_force_destroy
-  tags          = var.tags
-}
+# resource "aws_s3_bucket" "tf_state" {
+#   bucket        = var.bucket_name
+#   force_destroy = false
+
+#   tags = var.tags
+
+#   lifecycle {
+#     prevent_destroy = true 
+#   }
+# }
 
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.tf_state.id
   versioning_configuration {
-    status = var.bucket_versioning
+    status = "Enabled"
   }
 }
 
@@ -26,7 +31,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "enc" {
   bucket = aws_s3_bucket.tf_state.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = var.bucket_sse_algo
+      sse_algorithm = "AES256"
     }
     bucket_key_enabled = true
   }
@@ -34,20 +39,31 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "enc" {
 
 resource "aws_s3_bucket_public_access_block" "block" {
   bucket                  = aws_s3_bucket.tf_state.id
-  block_public_acls       = var.block_public_acls
-  block_public_policy     = var.block_public_policy
-  ignore_public_acls      = var.ignore_public_acls
-  restrict_public_buckets = var.restrict_public_buckets
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "owner" {
+  bucket = aws_s3_bucket.tf_state.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
 }
 
 resource "aws_dynamodb_table" "tf_lock" {
   name         = var.lock_table_name
-  billing_mode = var.lock_table_billing_mode
-  hash_key     = var.lock_table_hash_key
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
 
   attribute {
-    name = var.lock_table_hash_key
-    type = var.lock_table_hash_key_type
+    name = "LockID"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = var.tags
@@ -55,8 +71,7 @@ resource "aws_dynamodb_table" "tf_lock" {
 
 resource "aws_iam_role" "admin_role" {
   count = var.create_admin_role ? 1 : 0
-
-  name = var.admin_role_name
+  name  = var.admin_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -66,6 +81,8 @@ resource "aws_iam_role" "admin_role" {
         AWS = var.admin_principal_arn
       }
       Action = "sts:AssumeRole"
+      # Best Practice: Add a condition to ensure only your specific 
+      # CI/CD or User can assume this role.
     }]
   })
 
@@ -73,9 +90,9 @@ resource "aws_iam_role" "admin_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "admin_role_attach" {
-  count = var.create_admin_role ? 1 : 0
+  count      = var.create_admin_role ? 1 : 0
   role       = aws_iam_role.admin_role[0].name
-  policy_arn = var.admin_policy_arn
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
 resource "aws_s3_bucket_policy" "force_ssl" {
