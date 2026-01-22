@@ -16,6 +16,7 @@ locals {
 module "iam_users" {
   source = "../../modules/user-management/aws"
 
+  aws_account_id = var.aws_account_id
   project                 = var.project
   users                   = var.users
   enforce_password_policy = var.enforce_password_policy

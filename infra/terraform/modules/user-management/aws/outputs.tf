@@ -1,6 +1,3 @@
-# ==============================================================================
-# Secrets Manager - Store Passwords
-# ==============================================================================
 
 resource "aws_secretsmanager_secret" "user_passwords" {
   for_each = {
@@ -33,10 +30,6 @@ resource "aws_secretsmanager_secret_version" "user_passwords" {
   })
 }
 
-# ==============================================================================
-# Secrets Manager - Store Access Keys
-# ==============================================================================
-
 resource "aws_secretsmanager_secret" "access_keys" {
   for_each = {
     for user_key, user in var.users :
@@ -66,10 +59,6 @@ resource "aws_secretsmanager_secret_version" "access_keys" {
     secret_access_key = aws_iam_access_key.programmatic[each.key].secret
   })
 }
-
-# ==============================================================================
-# Module Outputs
-# ==============================================================================
 
 output "iam_users" {
   description = "Map of created IAM users"

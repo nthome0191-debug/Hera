@@ -58,3 +58,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "aws_account_id" {
+  description = "AWS account ID for IAM role configuration"
+  type        = string
+}

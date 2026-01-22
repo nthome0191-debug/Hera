@@ -113,6 +113,18 @@ data "aws_iam_policy_document" "infra_manager" {
       values   = ["false"]
     }
   }
+
+  statement {
+    sid    = "AllowAdminRoleToManageIAM"
+    effect = "Allow"
+    actions = ["iam:*"]
+    resources = ["*"]
+    condition {
+      test     = "ArnLike"
+      variable = "aws:PrincipalArn"
+      values   = ["arn:aws:iam::${var.aws_account_id}:role/${var.project}-bootstrap-admin-*"]
+    }
+  }
 }
 
 resource "aws_iam_policy" "infra_manager" {
@@ -357,7 +369,7 @@ resource "aws_iam_policy" "require_mfa" {
 }
 
 # ==============================================================================
-# IP Restriction Policy (Optional)
+# IP Restriction Policy
 # ==============================================================================
 
 data "aws_iam_policy_document" "ip_restriction" {
