@@ -209,6 +209,7 @@ data "aws_iam_policy_document" "developer" {
     actions = [
       "eks:DescribeCluster",
       "eks:ListClusters",
+      "sts:GetCallerIdentity",
     ]
     resources = ["*"]
   }
