@@ -13,4 +13,25 @@ locals {
       "environment"                  = var.environment
     }
   )
+  standard_write_rules = [
+    {
+      api_groups = ["", "apps", "batch", "extensions"]
+      resources = [
+        "pods", "services", "deployments", "replicasets",
+        "statefulsets", "daemonsets", "jobs", "cronjobs",
+        "configmaps", "persistentvolumeclaims",
+      ]
+      verbs = ["create", "update", "patch", "delete"]
+    },
+    {
+      api_groups = [""]
+      resources  = ["secrets"]
+      verbs      = ["get", "list", "watch"]
+    },
+    {
+      api_groups = [""]
+      resources  = ["pods/log", "pods/exec", "pods/portforward"]
+      verbs      = ["get", "list", "create"]
+    }
+  ]
 }

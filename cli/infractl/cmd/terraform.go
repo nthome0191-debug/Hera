@@ -11,7 +11,7 @@ import (
 func addTerraformFlags(cmd *cobra.Command, tm *resolver.TargetModule) {
 	cmd.Flags().StringVarP(&tm.Env, "env", "e", "", "Environment (e.g. dev, staging, prod, local, bootstrap, global)")
 	cmd.Flags().StringVarP(&tm.Provider, "provider", "p", "", "Provider (e.g. aws, azure, gcp, agnostic, kind)")
-	cmd.Flags().StringVarP(&tm.Stack, "stack", "s", "", "Stack (e.g. cluster, cluster-access, platform, start-pack, iam-users)")
+	cmd.Flags().StringVarP(&tm.Stack, "stack", "s", "", "Stack (e.g. cluster, cluster-access, platform, start-pack)")
 }
 
 func buildTargetModuleFromArgs(args []string, tm *resolver.TargetModule) error {

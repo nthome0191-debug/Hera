@@ -33,11 +33,13 @@ data "aws_eks_cluster_auth" "cluster" {
   ]
 }
 
-# Fetch IAM user ARNs from the global IAM user management deployment
-data "terraform_remote_state" "global_iam_users" {
-  backend = "local"
+# Fetch SSO role ARNs from the global Identity Center deployment
+data "terraform_remote_state" "identity_center" {
+  backend = "s3"
 
   config = {
-    path = "../../../global/aws/iam-users/terraform.tfstate"
+    bucket = "hera-bootstrap-tf-state-628987527285"
+    key    = "global/aws/identity-center/terraform.tfstate"
+    region = "us-east-1"
   }
 }

@@ -2,16 +2,12 @@
 # AWS EKS Auth Mapping Module - Variables
 # ==============================================================================
 # This module manages the aws-auth ConfigMap for EKS clusters.
-# It maps IAM identities to Kubernetes users/groups.
+# Authentication is via AWS IAM Identity Center (SSO) only.
+# K8s RBAC group mapping is handled here (environment-specific).
 # ==============================================================================
 
 variable "cluster_name" {
   description = "EKS cluster name"
-  type        = string
-}
-
-variable "node_role_name" {
-  description = "IAM role name for EKS nodes (required for nodes to join cluster)"
   type        = string
 }
 
@@ -31,27 +27,17 @@ variable "project" {
   default     = "hera"
 }
 
-variable "iam_user_arns" {
-  description = "Map of IAM user ARNs (from iam-user-management module)"
-  type        = map(string)
-}
-
-variable "users" {
-  description = "Map of users with their roles (for group mapping)"
-  type = map(object({
-    email               = string
-    full_name           = string
-    roles               = list(string)
-    require_mfa         = bool
-    console_access      = bool
-    programmatic_access = bool
-    environments        = list(string)
-  }))
-  default = {}
-}
-
 variable "tags" {
   description = "Common tags for resources"
   type        = map(string)
   default     = {}
+}
+
+# ==============================================================================
+# SSO Role ARNs (from Identity Center)
+# ==============================================================================
+
+variable "sso_role_arns" {
+  description = "Map of permission set names to their IAM role ARNs (from identity-center module)"
+  type        = map(string)
 }

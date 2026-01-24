@@ -20,15 +20,6 @@ variable "project" {
   default     = "hera"
 }
 
-variable "user_mappings" {
-  description = "List of users to map to Kubernetes groups (from cluster-auth-mapping module)"
-  type = list(object({
-    username = string
-    groups   = list(string)
-  }))
-  default = []
-}
-
 variable "tags" {
   description = "Common tags/labels for resources"
   type        = map(string)

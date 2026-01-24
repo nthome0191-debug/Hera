@@ -11,6 +11,7 @@ terraform {
 
 provider "aws" {
   region = var.region
+  profile = "hera-bootstrap"
 
   default_tags {
     tags = {

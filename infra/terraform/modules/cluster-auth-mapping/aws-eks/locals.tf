@@ -1,52 +1,31 @@
 # ==============================================================================
 # Local Values
 # ==============================================================================
+# K8s RBAC group mapping is defined here (environment-specific concern).
+# Identity Center only provides SSO role ARNs - no K8s knowledge there.
+# ==============================================================================
 
 locals {
-  # Map project roles to Kubernetes RBAC groups
-  role_to_k8s_groups = {
-    "infra-manager" = [
-      "${var.project}:infra-managers",
-      "system:masters", # Cluster admin access
-    ]
-    "infra-member" = [
-      "${var.project}:infra-members",
-    ]
-    "developer" = [
-      "${var.project}:developers",
-    ]
-    "security-engineer" = [
-      "${var.project}:security-engineers",
-    ]
+  # Permission set name to Kubernetes groups mapping
+  # This defines what K8s groups each SSO role gets access to
+  permission_set_to_k8s_groups = {
+    "InfraManager"     = ["${var.project}:infra-managers", "system:masters"]
+    "InfraMember"      = ["${var.project}:infra-members"]
+    "Developer"        = ["${var.project}:developers"]
+    "SecurityEngineer" = ["${var.project}:security-engineers"]
   }
 
-  # Map IAM users to K8s groups based on their roles
-  user_mappings = flatten([
-    for user_key, user in var.users : [
-      for role in user.roles : {
-        userarn  = var.iam_user_arns[user_key]
-        username = user_key
-        groups   = local.role_to_k8s_groups[role]
-      }
-    ]
-  ])
-
-  # Deduplicate users (a user might have multiple roles)
-  # Merge groups for the same user
-  user_mappings_by_user = {
-    for mapping in local.user_mappings :
-    mapping.username => mapping...
-  }
-
-  user_mappings_final = [
-    for username, mappings in local.user_mappings_by_user : {
-      userarn  = mappings[0].userarn
-      username = username
-      groups   = distinct(flatten([for m in mappings : m.groups]))
+  # Build SSO role entries for aws-auth ConfigMap
+  # Maps SSO role ARNs to K8s groups based on permission set name
+  sso_role_entries = [
+    for ps_name, role_arn in var.sso_role_arns : {
+      rolearn  = role_arn
+      username = "sso:{{SessionName}}"
+      groups   = lookup(local.permission_set_to_k8s_groups, ps_name, [])
     }
+    if role_arn != null
   ]
 
-  # Common tags
   common_tags = merge(
     var.tags,
     {

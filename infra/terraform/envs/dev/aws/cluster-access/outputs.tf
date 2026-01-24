@@ -1,5 +1,5 @@
 # ==============================================================================
-# Cluster Access Outputs
+# Cluster Access Outputs (SSO)
 # ==============================================================================
 
 output "kubernetes_rbac_groups" {
@@ -12,12 +12,12 @@ output "cluster_roles" {
   value       = module.aws_cluster_access.cluster_roles
 }
 
-output "user_mappings" {
-  description = "IAM user to Kubernetes group mappings"
-  value       = module.aws_cluster_access.user_mappings
+output "sso_role_mappings" {
+  description = "SSO role to Kubernetes group mappings"
+  value       = module.aws_cluster_access.sso_role_mappings
 }
 
 output "kubeconfig_instructions" {
-  description = "Instructions for setting up kubectl access"
+  description = "Instructions for setting up kubectl access via SSO"
   value       = module.aws_cluster_access.kubeconfig_instructions
 }

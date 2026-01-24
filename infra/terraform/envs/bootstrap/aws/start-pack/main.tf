@@ -40,7 +40,7 @@ locals {
 }
 
 module "bootstrap" {
-  source = "../../../modules/bootstrap/aws"
+  source = "../../../../modules/bootstrap/aws"
 
   region = var.region
 

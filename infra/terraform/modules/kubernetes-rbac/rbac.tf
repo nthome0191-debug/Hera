@@ -47,36 +47,19 @@ resource "kubernetes_cluster_role_v1" "infra_member" {
     labels = local.common_labels
   }
 
-  # Full read access to everything
   rule {
     api_groups = ["*"]
     resources  = ["*"]
     verbs      = ["get", "list", "watch"]
   }
 
-  # Full CRUD on application resources (create, update, patch, delete)
-  rule {
-    api_groups = ["", "apps", "batch", "extensions"]
-    resources = [
-      "pods", "services", "deployments", "replicasets",
-      "statefulsets", "daemonsets", "jobs", "cronjobs",
-      "configmaps", "secrets", "persistentvolumeclaims",
-    ]
-    verbs = ["create", "update", "patch", "delete"]
-  }
-
-  # Allow exec/logs/port-forward for debugging
-  rule {
-    api_groups = [""]
-    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
-    verbs      = ["get", "list", "create"]
-  }
-
-  # Full CRUD on network resources
-  rule {
-    api_groups = ["networking.k8s.io"]
-    resources  = ["networkpolicies", "ingresses"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  dynamic "rule" {
+    for_each = local.standard_write_rules
+    content {
+      api_groups = rule.value.api_groups
+      resources  = rule.value.resources
+      verbs      = rule.value.verbs
+    }
   }
 }
 
@@ -103,45 +86,26 @@ resource "kubernetes_cluster_role_binding_v1" "infra_member" {
 # ClusterRole: Developer (Environment-Based Permissions)
 # ==============================================================================
 
-# Dev Environment: Full CRUD + delete (same as infra member)
 resource "kubernetes_cluster_role_v1" "developer_full" {
   count = var.environment == "dev" ? 1 : 0
-
   metadata {
     name   = "${var.project}-${var.environment}-developer"
     labels = local.common_labels
   }
 
-  # Full read access to everything
   rule {
     api_groups = ["*"]
     resources  = ["*"]
     verbs      = ["get", "list", "watch"]
   }
 
-  # Full CRUD on application resources (create, update, patch, delete)
-  rule {
-    api_groups = ["", "apps", "batch", "extensions"]
-    resources = [
-      "pods", "services", "deployments", "replicasets",
-      "statefulsets", "daemonsets", "jobs", "cronjobs",
-      "configmaps", "secrets", "persistentvolumeclaims",
-    ]
-    verbs = ["create", "update", "patch", "delete"]
-  }
-
-  # Allow exec/logs/port-forward for debugging
-  rule {
-    api_groups = [""]
-    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
-    verbs      = ["get", "list", "create"]
-  }
-
-  # Full CRUD on network resources
-  rule {
-    api_groups = ["networking.k8s.io"]
-    resources  = ["networkpolicies", "ingresses"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  dynamic "rule" {
+    for_each = local.standard_write_rules
+    content {
+      api_groups = rule.value.api_groups
+      resources  = rule.value.resources
+      verbs      = rule.value.verbs
+    }
   }
 }
 
@@ -201,36 +165,19 @@ resource "kubernetes_cluster_role_v1" "security_engineer_full" {
     labels = local.common_labels
   }
 
-  # Full read access to everything
   rule {
     api_groups = ["*"]
     resources  = ["*"]
     verbs      = ["get", "list", "watch"]
   }
 
-  # Full CRUD on application resources (create, update, patch, delete)
-  rule {
-    api_groups = ["", "apps", "batch", "extensions"]
-    resources = [
-      "pods", "services", "deployments", "replicasets",
-      "statefulsets", "daemonsets", "jobs", "cronjobs",
-      "configmaps", "secrets", "persistentvolumeclaims",
-    ]
-    verbs = ["create", "update", "patch", "delete"]
-  }
-
-  # Allow exec/logs/port-forward for debugging
-  rule {
-    api_groups = [""]
-    resources  = ["pods", "pods/log", "pods/exec", "pods/portforward"]
-    verbs      = ["get", "list", "create"]
-  }
-
-  # Full CRUD on network resources
-  rule {
-    api_groups = ["networking.k8s.io"]
-    resources  = ["networkpolicies", "ingresses"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+  dynamic "rule" {
+    for_each = local.standard_write_rules
+    content {
+      api_groups = rule.value.api_groups
+      resources  = rule.value.resources
+      verbs      = rule.value.verbs
+    }
   }
 }
 

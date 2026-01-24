@@ -2,122 +2,109 @@
 Welcome to ${upper(project)} Infrastructure Access!
 ================================================================================
 
-Your account has been created in the ${environment} environment.
-Follow these steps to get started:
+Your account has been created with AWS IAM Identity Center (SSO).
+This provides secure, temporary credentials - no passwords or access keys needed!
 
-== Step 1: AWS Console Access ==
+== Step 1: Accept Email Invitation ==
 
-1. Go to: ${console_url}
-2. Account ID: ${aws_account_id}
-3. IAM username: [YOUR_USERNAME]
-4. Initial password: Retrieve from AWS Secrets Manager using:
-
-   aws secretsmanager get-secret-value \
-     --secret-id ${project}/${environment}/users/[YOUR_USERNAME]/initial-password \
-     --query SecretString \
-     --output text | jq -r '.initial_password'
-
-5. You'll be required to change your password on first login
-
-== Step 2: MFA Setup (REQUIRED) ==
-
-MFA is REQUIRED - most operations will be blocked until you set it up!
-
-1. Log into AWS Console
-2. Go to: IAM → Users → [YOUR_USERNAME] → Security credentials
-3. Click "Assign MFA device"
-4. Choose "Virtual MFA device"
-5. Use an authenticator app:
+1. Check your email for an AWS SSO invitation from no-reply@login.awsapps.com
+2. Click the "Accept invitation" link
+3. Create your password (one-time setup)
+4. Set up MFA with an authenticator app (REQUIRED):
    - Google Authenticator
    - Authy
    - Microsoft Authenticator
    - 1Password
-6. Scan the QR code
-7. Enter two consecutive MFA codes
-8. MFA setup complete!
 
-== Step 3: AWS CLI Configuration (Programmatic Access) ==
+== Step 2: Configure AWS CLI for SSO ==
 
-1. Retrieve your access keys from Secrets Manager:
+Run this command to configure SSO access:
 
-   aws secretsmanager get-secret-value \
-     --secret-id ${project}/${environment}/users/[YOUR_USERNAME]/access-key \
-     --query SecretString \
-     --output text | jq -r '.'
+   aws configure sso
 
-2. Configure AWS CLI profile:
+When prompted, enter:
+   SSO session name: ${project}
+   SSO start URL: https://[your-identity-store-id].awsapps.com/start
+   SSO region: ${region}
+   SSO registration scopes: [press Enter for default]
 
-   aws configure --profile ${project}-${environment}
+Then select:
+   - AWS Account: ${aws_account_id}
+   - Role: [Your assigned role - Developer, InfraManager, etc.]
+   - CLI default profile name: ${project}-${environment}
 
-   AWS Access Key ID: [FROM_SECRETS_MANAGER]
-   AWS Secret Access Key: [FROM_SECRETS_MANAGER]
-   Default region: ${region}
-   Default output format: json
+== Step 3: Daily Login (Start Here Each Day) ==
 
-3. Add MFA configuration to ~/.aws/config:
+Each day (or when your 4-hour session expires), run:
 
-   [profile ${project}-${environment}]
-   region = ${region}
-   output = json
-   mfa_serial = arn:aws:iam::${aws_account_id}:mfa/[YOUR_USERNAME]
+   aws sso login --profile ${project}-${environment}
 
-4. To use the profile with MFA:
+This will:
+1. Open a browser window
+2. Prompt for MFA authentication
+3. Grant temporary AWS credentials (valid for 4 hours)
 
-   aws sts get-session-token \
-     --serial-number arn:aws:iam::${aws_account_id}:mfa/[YOUR_USERNAME] \
-     --token-code [MFA_CODE] \
-     --profile ${project}-${environment}
-
-   # Export the temporary credentials
-   export AWS_ACCESS_KEY_ID=[Credentials.AccessKeyId]
-   export AWS_SECRET_ACCESS_KEY=[Credentials.SecretAccessKey]
-   export AWS_SESSION_TOKEN=[Credentials.SessionToken]
+That's it! No more access keys, no more session tokens.
 
 == Step 4: Kubernetes Access ==
 
-1. Update your kubeconfig:
+After SSO login, configure kubectl:
 
    aws eks update-kubeconfig \
      --region ${region} \
      --name ${cluster_name} \
      --profile ${project}-${environment}
 
-2. Test your access:
+Test your access:
 
    kubectl get pods --all-namespaces
 
-3. Your permissions depend on your assigned role:
-   - Infra Manager: Full cluster-admin access
-   - Infra Member: Read/write but not delete
-   - Developer: Read-only (or full access to dev namespace in dev environment)
-   - Security Engineer: Read-only security focus
+Your K8s permissions depend on your assigned permission set:
+   - InfraManager: Full cluster-admin access
+   - InfraMember: Read/write but not delete
+   - Developer: Full access to 'dev' namespace, read elsewhere
+   - SecurityEngineer: Read-only with security focus
 
 == Step 5: Verify Your Access ==
 
-Test your AWS permissions:
+Test AWS access:
+
+   # Show your SSO identity
+   aws sts get-caller-identity --profile ${project}-${environment}
 
    # List EKS clusters
-   aws eks list-clusters --region ${region}
+   aws eks list-clusters --region ${region} --profile ${project}-${environment}
 
-   # Describe your IAM user
-   aws iam get-user
-
-Test your Kubernetes access:
+Test Kubernetes access:
 
    # List pods
    kubectl get pods -A
 
-   # Check what you can do (example)
+   # Check your permissions
    kubectl auth can-i create pods -n dev
 
-== Role-Specific Permissions ==
+== Quick Reference ==
 
-Infra Manager:
+Daily workflow:
+   1. aws sso login --profile ${project}-${environment}
+   2. [MFA in browser]
+   3. Use aws/kubectl commands with --profile ${project}-${environment}
+
+Session expired?
+   → Just run: aws sso login --profile ${project}-${environment}
+
+Multiple profiles?
+   → List: aws configure list-profiles
+   → Switch: export AWS_PROFILE=${project}-${environment}
+
+== Permission Set Reference ==
+
+InfraManager:
   AWS: Full infrastructure management (EC2, EKS, VPC, etc.)
        DENIED: Delete critical resources, IAM user management
   K8s: Full cluster-admin access
 
-Infra Member:
+InfraMember:
   AWS: Read and modify existing resources
        DENIED: Create/delete clusters, IAM operations
   K8s: Full access except delete operations
@@ -132,42 +119,44 @@ Developer:
        Read-only access to all namespaces
        %{ endif ~}
 
-Security Engineer:
-  AWS: Read-only access to all security services
+SecurityEngineer:
+  AWS: Read-only access to security services
        (CloudTrail, GuardDuty, Security Hub, Config, IAM analysis)
        DENIED: All write operations
   K8s: Read-only access with security focus
 
-== Security Best Practices ==
+== Security Benefits of SSO ==
 
-1. NEVER share your credentials
-2. Enable MFA immediately (required)
-3. Rotate access keys every 90 days
-4. Use session tokens with MFA for CLI operations
-5. Report suspicious activity immediately
-6. Review CloudTrail logs regularly (security engineers)
+- NO static passwords for AWS access
+- NO long-lived access keys
+- Automatic MFA enforcement on every login
+- Temporary credentials (4-hour expiry)
+- Single sign-on across AWS services
+- Centralized user management
+- Audit trail for all logins
 
 == Troubleshooting ==
 
-Problem: Can't log in to console
-  → Verify you're using the correct Account ID: ${aws_account_id}
-  → Double-check your username (case-sensitive)
-  → Retrieve password from Secrets Manager
+Problem: "Token has expired" error
+  → Run: aws sso login --profile ${project}-${environment}
 
-Problem: Operations are denied
-  → Ensure MFA is set up and you're using it
-  → Check if you're in the correct IAM group
-  → Review your role permissions above
+Problem: Browser doesn't open
+  → Copy the URL shown in terminal and paste in browser
+  → Or use: aws sso login --profile ${project}-${environment} --no-browser
 
-Problem: kubectl access denied
-  → Verify kubeconfig is updated: kubectl config current-context
-  → Check AWS credentials are valid: aws sts get-caller-identity
-  → Confirm you're authenticated: kubectl auth whoami
+Problem: "No such profile" error
+  → Re-run: aws configure sso
+  → Verify profile name: aws configure list-profiles
 
-Problem: Access key not working
-  → Verify access keys from Secrets Manager
-  → Check if MFA session token is required
-  → Ensure credentials are not expired
+Problem: kubectl permission denied
+  → Verify SSO session is active: aws sts get-caller-identity --profile ${project}-${environment}
+  → Re-run kubeconfig: aws eks update-kubeconfig ...
+  → Check your permission set assignment
+
+Problem: Can't find SSO invitation email
+  → Check spam/junk folder
+  → Email comes from: no-reply@login.awsapps.com
+  → Contact DevOps team if not received within 24 hours
 
 == Support ==
 
@@ -178,11 +167,11 @@ For access issues or questions:
 
 == Important Notes ==
 
-- Initial passwords expire after first login
-- Access keys should be rotated every 90 days
-- MFA is enforced - you cannot perform most operations without it
+- Sessions expire after 4 hours - just re-login when needed
+- MFA is enforced on every login - no way to bypass
 - Your access is environment-specific: ${environment}
+- SSO credentials are never stored locally in plain text
 
 ================================================================================
-Welcome aboard! If you have any questions, don't hesitate to reach out.
+Welcome aboard! Enjoy the simplified, more secure login experience.
 ================================================================================
