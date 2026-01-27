@@ -7,7 +7,7 @@
 # ==============================================================================
 
 module "identity_center" {
-  source = "../../../stacks/aws-identity-center"
+  source = "../../../../stacks/aws-identity-center"
   project     = var.project
   environment = var.environment
   session_duration = var.session_duration

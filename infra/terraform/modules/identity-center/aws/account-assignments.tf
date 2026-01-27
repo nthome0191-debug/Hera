@@ -34,11 +34,11 @@ resource "aws_ssoadmin_account_assignment" "assignments" {
 #
 # We use a data source to retrieve the exact ARNs for use in EKS aws-auth ConfigMap.
 
-# data "aws_iam_roles" "sso_roles" {
-#   for_each = toset(["InfraManager", "InfraMember", "Developer", "SecurityEngineer"])
+data "aws_iam_roles" "sso_roles" {
+  for_each = toset(["InfraManager", "InfraMember", "Developer", "SecurityEngineer"])
 
-#   name_regex  = "AWSReservedSSO_${each.key}_.*"
-#   path_prefix = "/aws-reserved/sso.amazonaws.com/"
+  name_regex  = "AWSReservedSSO_${each.key}_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
 
-#   depends_on = [aws_ssoadmin_account_assignment.assignments]
-# }
+  depends_on = [aws_ssoadmin_account_assignment.assignments]
+}
