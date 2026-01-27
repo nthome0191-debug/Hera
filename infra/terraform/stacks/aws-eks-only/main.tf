@@ -49,16 +49,16 @@ module "eks_cluster" {
   tags = local.tags
 }
 
-module "karpenter" {
-  source = "../../modules/karpenter"
+# module "karpenter" {
+#   source = "../../modules/karpenter"
 
-  cluster_name                       = module.eks.cluster_name
-  cluster_endpoint                   = module.eks.cluster_endpoint
-  cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
-  oidc_provider_arn                  = module.eks.oidc_provider_arn
+#   cluster_name                       = module.eks.cluster_name
+#   cluster_endpoint                   = module.eks.cluster_endpoint
+#   cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
+#   oidc_provider_arn                  = module.eks.oidc_provider_arn
   
-  karpenter_version                  = var.karpenter_version
+#   karpenter_version                  = var.karpenter_version
 
-  # Ensure the cluster exists before installing Karpenter
-  depends_on = [module.eks]
-}
+#   # Ensure the cluster exists before installing Karpenter
+#   depends_on = [module.eks]
+# }

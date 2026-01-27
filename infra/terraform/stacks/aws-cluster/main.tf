@@ -62,14 +62,14 @@ module "cloudtrail" {
   tags              = var.tags
 }
 
-module "karpenter" {
-  source = "../../modules/karpenter"
+# module "karpenter" {
+#   source = "../../modules/karpenter"
 
-  cluster_name      = module.aws_eks_cluster.cluster_name
-  cluster_endpoint  = module.aws_eks_cluster.cluster_endpoint
-  oidc_provider_arn = module.aws_eks_cluster.oidc_provider_arn
+#   cluster_name      = module.aws_eks_cluster.cluster_name
+#   cluster_endpoint  = module.aws_eks_cluster.cluster_endpoint
+#   oidc_provider_arn = module.aws_eks_cluster.oidc_provider_arn
   
-  cluster_certificate_authority_data = module.aws_eks_cluster.cluster_ca_certificate
+#   cluster_certificate_authority_data = module.aws_eks_cluster.cluster_ca_certificate
 
-  depends_on = [module.aws_eks_cluster]
-}
+#   depends_on = [module.aws_eks_cluster]
+# }
