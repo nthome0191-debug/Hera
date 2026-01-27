@@ -195,6 +195,12 @@ variable "eks_addons" {
   }
 }
 
+variable "karpenter_version" {
+  description = "The version of Karpenter to deploy"
+  type        = string
+  default     = "v0.30.4"
+}
+
 variable "kubeconfig_context_name" {
   description = "Friendly kubeconfig context name for this environment"
   type        = string

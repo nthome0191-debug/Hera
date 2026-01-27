@@ -187,6 +187,12 @@ variable "eks_addons" {
   }
 }
 
+variable "karpenter_version" {
+  description = "The version of Karpenter to deploy"
+  type        = string
+  default     = "v0.30.4"
+}
+
 # Encryption (for PCI clusters)
 variable "enable_cluster_encryption" {
   description = "Enable envelope encryption of Kubernetes secrets using KMS"

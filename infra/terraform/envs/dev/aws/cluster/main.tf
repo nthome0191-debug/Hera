@@ -37,4 +37,6 @@ module "aws_cluster" {
   # CloudTrail
   create_cloudtrail = var.create_cloudtrail
   cloudtrail_name   = var.aws_account_id
+
+  karpenter_version = "1.0.0"
 }
