@@ -20,21 +20,18 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "availability_zones" {
+variable "azs" {
   description = "List of availability zones"
   type        = list(string)
 }
 
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets"
-  type        = list(string)
+variable "clusters" {
+  description = "List of EKS clusters to carve subnets for"
+  type = list(object({
+    name = string
+    azs  = list(string)
+  }))
 }
-
-variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets"
-  type        = list(string)
-}
-
 variable "enable_nat_gateway" {
   description = "Enable NAT Gateway"
   type        = bool
@@ -43,21 +40,6 @@ variable "enable_nat_gateway" {
 variable "single_nat_gateway" {
   description = "Use single NAT Gateway"
   type        = bool
-}
-
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints"
-  type        = bool
-}
-
-variable "vpc_endpoints" {
-  description = "List of VPC endpoints"
-  type        = list(string)
-}
-
-variable "cluster_names" {
-  description = "List of cluster names"
-  type        = list(string)
 }
 
 variable "enable_flow_logs" {

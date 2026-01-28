@@ -1,64 +1,45 @@
-# VPC Outputs
+
 output "vpc_id" {
-  description = "ID of the VPC"
+  description = "The ID of the VPC"
   value       = module.network.vpc_id
 }
 
 output "vpc_cidr" {
-  description = "CIDR block of the VPC"
+  description = "The CIDR block of the VPC"
   value       = module.network.vpc_cidr
 }
 
-# Subnet Outputs
-output "private_subnet_ids" {
-  description = "List of private subnet IDs"
-  value       = module.network.private_subnet_ids
+output "cluster_network_layout" {
+  description = "A mapping of each cluster name to its allocated subnets and AZs"
+  value = {
+    for c in var.clusters : c.name => {
+      private_subnets = [for az in c.azs : module.network.private_subnets["${c.name}-${az}"]]
+      public_subnets  = [for az in c.azs : module.network.public_subnets["${c.name}-${az}"]]
+      azs             = c.azs
+    }
+  }
 }
 
-output "public_subnet_ids" {
-  description = "List of public subnet IDs"
-  value       = module.network.public_subnet_ids
-}
-
-output "private_subnet_cidrs" {
-  description = "List of private subnet CIDR blocks"
-  value       = module.network.private_subnet_cidrs
-}
-
-output "public_subnet_cidrs" {
-  description = "List of public subnet CIDR blocks"
-  value       = module.network.public_subnet_cidrs
-}
-
-output "availability_zones" {
-  description = "List of availability zones"
-  value       = module.network.availability_zones
-}
-
-# NAT Gateway Outputs
-output "nat_gateway_ids" {
-  description = "List of NAT Gateway IDs"
-  value       = module.network.nat_gateway_ids
-}
-
-output "nat_gateway_ips" {
-  description = "List of NAT Gateway IPs"
+output "nat_gateway_public_ips" {
+  description = "The public IPs of the NAT Gateways"
   value       = module.network.nat_gateway_ips
 }
 
-# Route Table Outputs
-output "private_route_table_ids" {
-  description = "List of private route table IDs"
-  value       = module.network.private_route_table_ids
+output "vpc_endpoint_sg_id" {
+  description = "The Security Group ID for the ECR/EKS endpoints"
+  value       = module.network.endpoint_security_group_id
 }
 
-output "public_route_table_id" {
-  description = "Public route table ID"
-  value       = module.network.public_route_table_id
+# --- Future-Proofing for EKS ---
+# Once you uncomment the EKS cluster module, you would add outputs like these:
+/*
+output "eks_cluster_endpoints" {
+  description = "The API endpoints for the EKS clusters"
+  value       = { for name, cluster in module.eks_clusters : name => cluster.endpoint }
 }
 
-# VPC Endpoint Outputs
-output "vpc_endpoint_ids" {
-  description = "Map of VPC endpoint IDs"
-  value       = module.network.vpc_endpoint_ids
+output "eks_cluster_certificate_authority_data" {
+  description = "The CA data for the clusters"
+  value       = { for name, cluster in module.eks_clusters : name => cluster.certificate_authority_data }
 }
+*/

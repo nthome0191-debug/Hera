@@ -1,84 +1,40 @@
-# Global variables
-variable "region" {
-  description = "AWS region"
-  type        = string
-}
-
-variable "project" {
-  description = "Project name"
-  type        = string
-}
 
 variable "environment" {
-  description = "Environment name (dev, staging, prod)"
   type        = string
+  description = "e.g., prod, staging, dev"
 }
 
-# Network variables
+variable "region" {
+  type        = string
+  description = "AWS Region for the provider"
+}
+
 variable "vpc_cidr" {
-  description = "CIDR block for VPC"
-  type        = string
+  type    = string
+  default = "10.0.0.0/16"
 }
 
-variable "availability_zones" {
-  description = "List of availability zones"
+variable "azs" {
   type        = list(string)
+  description = "Availability zones to be used within the region"
 }
 
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets"
-  type        = list(string)
-}
-
-variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets"
-  type        = list(string)
+variable "clusters" {
+  description = "A list of cluster configurations to provision"
+  type = list(object({
+    name    = string
+    azs     = list(string)
+    version = optional(string, "1.31") 
+  }))
 }
 
 variable "enable_nat_gateway" {
-  description = "Enable NAT Gateway for private subnets"
-  type        = bool
-  default     = true
+  type    = bool
+  default = true
 }
 
 variable "single_nat_gateway" {
-  description = "Use a single NAT Gateway for all private subnets (cost-effective for dev)"
   type        = bool
-  default     = false
-}
-
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services"
-  type        = bool
-  default     = false
-}
-
-variable "vpc_endpoints" {
-  description = "List of VPC endpoints to create"
-  type        = list(string)
-  default     = []
-}
-
-variable "cluster_names" {
-  description = "List of EKS cluster names that will use this VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "enable_flow_logs" {
-  description = "Enable VPC Flow Logs"
-  type        = bool
-  default     = false
-}
-
-variable "flow_logs_retention_days" {
-  description = "CloudWatch log retention in days for VPC Flow Logs"
-  type        = number
-  default     = 1
-}
-
-variable "flow_logs_traffic_type" {
-  description = "Type of traffic to log: ACCEPT, REJECT, or ALL"
-  type        = string
-  default     = "ALL"
+  default     = true
+  description = "Set to true to share 1 NAT across all clusters/AZs (cheaper for Dev)"
 }
