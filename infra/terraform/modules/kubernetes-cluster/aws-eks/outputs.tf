@@ -5,7 +5,7 @@ output "cluster_id" {
 
 output "cluster_name" {
   description = "The name of the EKS cluster (with random suffix if enabled)"
-  value       = local.cluster_name_with_suffix
+  value       = local.name_prefix
 }
 
 output "cluster_arn" {
@@ -117,7 +117,7 @@ output "cluster_autoscaler_role_arn" {
 output "kubeconfig" {
   description = "kubectl config file contents for this EKS cluster"
   value = templatefile("${path.module}/templates/kubeconfig.tpl", {
-    cluster_name           = local.cluster_name_with_suffix
+    cluster_name           = local.name_prefix
     cluster_endpoint       = aws_eks_cluster.main.endpoint
     cluster_ca_certificate = aws_eks_cluster.main.certificate_authority[0].data
     region                 = var.region
@@ -137,5 +137,5 @@ output "kubeconfig_path" {
 
 output "kubeconfig_context" {
   description = "Kubeconfig context name to use for this cluster"
-  value       = var.kubeconfig_context_name != "" ? var.kubeconfig_context_name : "arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${local.cluster_name_with_suffix}"
+  value       = var.kubeconfig_context_name != "" ? var.kubeconfig_context_name : "arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${local.name_prefix}"
 }
